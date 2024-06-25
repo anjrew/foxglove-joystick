@@ -156,6 +156,10 @@ export function buildSettingsTree(config: Config, topics?: readonly Topic[]): Se
           value: "xbox",
         },
         {
+          label: "Xbox Alternative",
+          value: "xbox-2",
+        },
+        {
           label: "Cheap Controller",
           value: "cheapo",
         },

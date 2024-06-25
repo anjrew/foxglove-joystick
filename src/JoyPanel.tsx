@@ -32,7 +32,6 @@ function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX
   const [kbEnabled, setKbEnabled] = useState<boolean>(true);
   const [trackedKeys, setTrackedKeys] = useState<Map<string, KbMap> | undefined>(() => {
     const keyMap = new Map<string, KbMap>();
-
     for (const [key, value] of Object.entries(kbmapping1)) {
       const k: KbMap = {
         button: value.button,
@@ -126,6 +125,7 @@ function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX
   useEffect(() => {
     const latestJoy = messages?.[messages.length - 1]?.message as Joy | undefined;
     if (latestJoy) {
+      console.log("Received Latest Joy message", latestJoy);
       const tmpMsg = {
         header: {
           stamp: latestJoy.header.stamp,
@@ -134,6 +134,8 @@ function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX
         axes: Array.from(latestJoy.axes),
         buttons: Array.from(latestJoy.buttons),
       };
+      console.log("New Joy messsage", tmpMsg);
+
       setJoy(tmpMsg);
     }
   }, [messages, config.publishFrameId]);
@@ -158,17 +160,64 @@ function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX
         if (config.gamepadId !== gp.index) {
           return;
         }
+        console.log("Gamepad " + gp.index + " updated!", "Axis", gp.axes, "Buttons", gp.buttons);
 
-        const tmpJoy = {
-          header: {
-            frame_id: config.publishFrameId,
-            stamp: fromDate(new Date()), // TODO: /clock
-          },
-          axes: gp.axes.map((axis) => -axis),
-          buttons: gp.buttons.map((button) => (button.pressed ? 1 : 0)),
-        } as Joy;
 
-        setJoy(tmpJoy);
+        try {
+
+
+          // TEMP for Xbox controller
+
+          // Left trigger is 6
+          // Right trigger is 7
+          // const leftTriggerIndex = 6;
+          // const left_trigger_axis = gp.buttons[leftTriggerIndex]!.value;
+          // const rightTriggerIndex = 7;
+          // const right_trigger_axis = gp.buttons[rightTriggerIndex]!.value;
+          // const axes = gp.axes.map((axis) => -axis)
+          // axes.push(left_trigger_axis);
+          // axes.push(right_trigger_axis);
+
+          // const buttons = gp.buttons
+          //   .filter((_, index) => index !== leftTriggerIndex && index !== rightTriggerIndex)
+          //   .map((button) => (button.pressed ? 1 : 0));
+
+          // const tmpJoy = {
+          //   header: {
+          //     frame_id: config.publishFrameId,
+          //     stamp: fromDate(new Date()), // TODO: /clock
+          //   },
+          //   axes: axes,
+          //   buttons: buttons,
+          // } as Joy;
+
+           //  Original code
+           const tmpJoy = {
+            header: {
+              frame_id: config.publishFrameId,
+              stamp: fromDate(new Date()), // TODO: /clock
+            },
+            axes: gp.axes.map((axis) => -axis),
+            buttons: gp.buttons.map((button) => (button.pressed ? 1 : 0)),
+          } as Joy;
+          console.log("Generated Joy message 1", tmpJoy);
+          setJoy(tmpJoy);
+
+        } catch (e) {
+          console.error("Error updating gamepad", e);
+          //  Original code
+          const tmpJoy = {
+            header: {
+              frame_id: config.publishFrameId,
+              stamp: fromDate(new Date()), // TODO: /clock
+            },
+            axes: gp.axes.map((axis) => -axis),
+            buttons: gp.buttons.map((button) => (button.pressed ? 1 : 0)),
+          } as Joy;
+          console.log("Generated Joy message 2", tmpJoy);
+          setJoy(tmpJoy);
+
+        }
       },
       [config.dataSource, config.gamepadId, config.publishFrameId],
     ),
@@ -252,6 +301,7 @@ function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX
       buttons,
     } as Joy;
 
+    console.log("Generated Joy message", tmpJoy);
     setJoy(tmpJoy);
   }, [config.dataSource, trackedKeys, config.publishFrameId, kbEnabled]);
 
@@ -282,6 +332,7 @@ function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX
     }
 
     if (pubTopic && pubTopic === config.pubJoyTopic) {
+      console.log("Publishing Joy message", joy);
       context.publish?.(pubTopic, joy);
     }
   }, [context, config.pubJoyTopic, config.publishMode, joy, pubTopic]);
@@ -320,6 +371,7 @@ function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX
         axes: interactiveJoy.axes,
         buttons: interactiveJoy.buttons,
       } as Joy;
+      console.log("Generated Joy message interactively", tmpJoy);
 
       setJoy(tmpJoy);
     },

@@ -39,7 +39,7 @@ export interface StickConfig {
   button: number;
 }
 
-export interface DPadConfig {
+export interface DPadAxisConfig {
   type: string;
   x: number;
   y: number;
@@ -47,4 +47,16 @@ export interface DPadConfig {
   axisY: number;
 }
 
-export type DisplayMapping = (ButtonConfig | BarConfig | StickConfig | DPadConfig)[];
+export interface DPadButtonConfig {
+  type: string;
+  buttons: {
+    up: number;
+    down: number;
+    left: number;
+    right: number;
+  },
+  x: number;
+  y: number;
+}
+
+export type DisplayMapping = (ButtonConfig | BarConfig | StickConfig | DPadAxisConfig | DPadButtonConfig)[];

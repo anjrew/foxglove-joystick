@@ -5,7 +5,9 @@ import cheapo from "./display-mappings/cheapo.json";
 import ipega9083s from "./display-mappings/ipega-9083s.json";
 import steamdeck from "./display-mappings/steamdeck.json";
 import xbox from "./display-mappings/xbox.json";
-import { Joy, ButtonConfig, BarConfig, StickConfig, DPadConfig, DisplayMapping } from "../types";
+import xbox2 from "./display-mappings/xbox-2.json";
+
+import { Joy, ButtonConfig, BarConfig, StickConfig, DPadAxisConfig, DisplayMapping, DPadButtonConfig } from "../types";
 
 const colStroke = "#ddd";
 const colPrim = "blue";
@@ -190,6 +192,8 @@ export function GamepadView(props: {
       setDisplayMapping(steamdeck);
     } else if (layoutName === "ipega-9083s") {
       setDisplayMapping(ipega9083s);
+    } else if (layoutName === "xbox-2") {
+      setDisplayMapping(xbox2);
     } else if (layoutName === "xbox") {
       setDisplayMapping(xbox);
     } else if (layoutName === "cheapo") {
@@ -429,14 +433,32 @@ export function GamepadView(props: {
         ),
       );
     } else if (mappingA.type === "d-pad") {
-      const mapping = mappingA as DPadConfig;
-      const axisX = mapping.axisX;
-      const axisY = mapping.axisY;
-      const x = mapping.x;
-      const y = mapping.y;
-      const axXVal = joy?.axes[axisX] ?? 0;
-      const axYVal = joy?.axes[axisY] ?? 0;
-      dispItems.push(generateDPad(axXVal, axYVal, x, y, 30));
+
+      if ("buttons" in mappingA) {
+        const dpadDetails = mappingA;
+        const { x, y, buttons } = dpadDetails;
+      
+        let axXVal = 0;
+        if (buttons.right && joy?.buttons[buttons.right] === 1) {
+          axXVal = 1;
+        } else if (buttons.left && joy?.buttons[buttons.left] === 1) {
+          axXVal = -1;
+        }
+      
+        let axYVal = 0;
+        if (buttons.up && joy?.buttons[buttons.up] === 1) {
+          axYVal = 1;
+        } else if (buttons.down && joy?.buttons[buttons.down] === 1) {
+          axYVal = -1;
+        }
+      
+        dispItems.push(generateDPad(axXVal, axYVal, x, y, 30));
+      } else {
+        const { axisX, axisY, x, y } = mappingA as DPadAxisConfig;
+        const axXVal = joy?.axes[axisX] ?? 0;
+        const axYVal = joy?.axes[axisY] ?? 0;
+        dispItems.push(generateDPad(axXVal, axYVal, x, y, 30));
+      }
     }
 
     // Auto indexing code to bring back later?
