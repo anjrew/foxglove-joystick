@@ -11,7 +11,7 @@ There are four main operating modes/input sources/use cases:
 | Subscribe Mode | Subscribes to an existing ROS `Joy` topic | Monitoring a robot that is being teleoperated, or replaying a log and reviewing operator actions |
 | Gamepad Mode | Receives input from a locally-connected gamepad (and publishes it to a ROS `Joy` topic) | Live control of a robot using a gamepad connected to any Foxglove-supported device |
 | Keyboard Mode | Converts local keystrokes into `Joy` messages (for publishing) | Bench-testing a configuration that is primarily designed to use a gamepad but does not currently have one connected |
-| Interactive Display Mode | Makes the displayed indicators clickable/touchable (for publishing) | Controlling a robot from a touchscreen device |``
+| Interactive Display Mode | Makes the displayed indicators clickable/touchable (for publishing) | Controlling a robot from a touchscreen device |
 
 ![Panel Overview Screenshot](https://github.com/joshnewans/foxglove-joystick/blob/main/docs/screenshot1.png?raw=true)
 
@@ -28,23 +28,22 @@ Download the latest `.foxe` release [here](https://github.com/joshnewans/foxglov
 ### Compile from source
 
 With Node and Foxglove installed
- - `npm install` to install dependencies
- - `npm run local-install` to build and install for a local copy of the Foxglove Studio Desktop App
- - `npm run package` to package it up into a `.foxe` file
+
+- `npm install` to install dependencies
+- `npm run local-install` to build and install for a local copy of the Foxglove Studio Desktop App
+- `npm run package` to package it up into a `.foxe` file
 
 ### Snap Users
 
-Right now it seems that this panel will **not** work with the `snap` version of Foxglove Studio. Snaps do not allow joystick input by default and I am looking into what is required to use it (possibly the Foxglove team enabling the `joystick` interface). 
+Right now it seems that this panel will **not** work with the `snap` version of Foxglove Studio. Snaps do not allow joystick input by default and I am looking into what is required to use it (possibly the Foxglove team enabling the `joystick` interface).
 
 ### Steam Deck Users
 
 Please follow [this guide](docs/steamdeck.md).
 
-
-
 ## Mapping
 
-Right now all "mapping" within the program is direct, but it is intended that there will be flexibility here. This is because different controllers (and in some cases the same controller on different platforms) will have the buttons/axes arranged in a different order. 
+Right now all "mapping" within the program is direct, but it is intended that there will be flexibility here. This is because different controllers (and in some cases the same controller on different platforms) will have the buttons/axes arranged in a different order.
 
 Some more complex examples of this are D-Pads (sometimes register as two axes, sometimes four buttons) and triggers (sometimes register as axes + buttons, sometimes buttons with a variable value, unsupported by `Joy`).
 
@@ -67,7 +66,7 @@ Currently consist of a `.json` to determine button locations and an entry in `Ga
   - [x] Source Mode 1 (Subscriber)
   - [x] Source Mode 2 (Gamepad)
     - [ ] Option for a custom mapping from gamepad to `Joy` (e.g. GP 6-> Joy 8)
-    - [ ] Deadzones, inversion, scaling, etc.
+    - [ ] Dead-zones, inversion, scaling, etc.
   - [x] Source Mode 3 (Keyboard)
   - [x] Source Mode 4 (Interactive)
 - **Display modes**
@@ -78,8 +77,6 @@ Currently consist of a `.json` to determine button locations and an entry in `Ga
     - [ ] Different options for mapping joy buttons to image buttons
     - [x] Options for axes to be sticks, d-pads, triggers, or more
     - [ ] General improved customisability
-
-
 
 ## Contributions
 

@@ -7,10 +7,9 @@ import {
   SettingsTreeAction,
 } from "@foxglove/studio";
 import { FormGroup, FormControlLabel, Switch } from "@mui/material";
-import { useEffect, useLayoutEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useLayoutEffect, useState, useCallback, } from "react";
 import ReactDOM from "react-dom";
 
-// import { GamepadDebug } from "./components/GamepadDebug";
 import { GamepadView } from "./components/GamepadView";
 import { SimpleButtonView } from "./components/SimpleButtonView";
 import kbmapping1 from "./components/kbmapping1.json";
@@ -25,7 +24,7 @@ type KbMap = {
   value: number;
 };
 
-function JoyPanel({ context }: { context: PanelExtensionContext }): JSX.Element {
+function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX.Element {
   const [topics, setTopics] = useState<undefined | Immutable<Topic[]>>();
   const [messages, setMessages] = useState<undefined | Immutable<MessageEvent[]>>();
   const [joy, setJoy] = useState<Joy | undefined>();
@@ -117,7 +116,7 @@ function JoyPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
   // Or subscribe to the relevant topic when in a recorded session
   useEffect(() => {
     if (config.dataSource === "sub-joy-topic") {
-      context.subscribe([config.subJoyTopic]);
+      context.subscribe([{ topic: config.subJoyTopic }]);
     } else {
       context.unsubscribeAll();
     }
@@ -147,7 +146,7 @@ function JoyPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
 
     didDisconnect: useCallback((gp: Gamepad) => {
       // TODO update the gamepad ID list
-      console.log("Gamepad " + gp.index + " discconnected!");
+      console.log("Gamepad " + gp.index + " disconnected!");
     }, []),
 
     didUpdate: useCallback(
@@ -179,7 +178,7 @@ function JoyPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     setTrackedKeys((oldTrackedKeys) => {
-      if (oldTrackedKeys && oldTrackedKeys.has(event.key)) {
+      if (oldTrackedKeys?.has(event.key)) {
         const newKeys = new Map(oldTrackedKeys);
         const k = newKeys.get(event.key);
         if (k) {
@@ -193,15 +192,12 @@ function JoyPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
 
   const handleKeyUp = useCallback((event: KeyboardEvent) => {
     setTrackedKeys((oldTrackedKeys) => {
-      if (oldTrackedKeys && oldTrackedKeys.has(event.key)) {
-        const newKeys = new Map(oldTrackedKeys);
-        const k = newKeys.get(event.key);
-        if (k) {
-          k.value = 0;
-        }
-        return newKeys;
+      const newKeys = new Map(oldTrackedKeys);
+      const k = newKeys.get(event.key);
+      if (k) {
+        k.value = 0;
       }
-      return oldTrackedKeys;
+      return newKeys;
     });
   }, []);
 
@@ -352,11 +348,9 @@ function JoyPanel({ context }: { context: PanelExtensionContext }): JSX.Element 
           layoutName={config.layoutName}
         />
       ) : null}
-      {/* {config.debugGamepad ? <GamepadDebug gamepads={gamepads} /> : null} */}
     </div>
   );
 }
-
 export function initJoyPanel(context: PanelExtensionContext): () => void {
   ReactDOM.render(<JoyPanel context={context} />, context.panelElement);
 
