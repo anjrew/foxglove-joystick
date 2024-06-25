@@ -14,7 +14,7 @@ import { GamepadView } from "./components/GamepadView";
 import { SimpleButtonView } from "./components/SimpleButtonView";
 import kbmapping1 from "./components/kbmapping1.json";
 import { useGamepad } from "./hooks/useGamepad";
-import { Config, buildSettingsTree, settingsActionReducer } from "./panelSettings";
+import { Config, settingsActionReducer, buildSettingsTree } from './panelSettings';
 import { Joy } from "./types";
 
 type KbMap = {
@@ -23,6 +23,22 @@ type KbMap = {
   direction: number;
   value: number;
 };
+
+const LOCAL_STORAGE_KEY = 'foxglove-joy-panel-config';
+
+const DEFAULT_CONFIG: Config = {
+  subJoyTopic: "/joy",
+  pubJoyTopic: "/joy",
+  publishMode: false,
+  publishFrameId: "",
+  dataSource: "sub-joy-topic",
+  displayMode: "auto",
+  debugGamepad: false,
+  layoutName: "steamdeck",
+  mapping_name: "TODO",
+  gamepadId: 0,
+};
+
 
 function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX.Element {
   const [topics, setTopics] = useState<undefined | Immutable<Topic[]>>();
@@ -48,29 +64,41 @@ function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
 
   const [config, setConfig] = useState<Config>(() => {
-    const partialConfig = context.initialState as Partial<Config>;
-    partialConfig.subJoyTopic ??= "/joy";
-    partialConfig.pubJoyTopic ??= "/joy";
-    partialConfig.publishMode ??= false;
-    partialConfig.publishFrameId ??= "";
-    partialConfig.dataSource ??= "sub-joy-topic";
-    partialConfig.displayMode ??= "auto";
-    partialConfig.debugGamepad ??= false;
-    partialConfig.layoutName ??= "steamdeck";
-    partialConfig.mapping_name ??= "TODO";
-    partialConfig.gamepadId ??= 0;
-    return partialConfig as Config;
+    const storedConfig = localStorage.getItem(LOCAL_STORAGE_KEY);
+    let initialConfig: Config;
+
+    if (storedConfig) {
+      const parsedConfig = JSON.parse(storedConfig) as Partial<Config>;
+      initialConfig = { ...DEFAULT_CONFIG, ...parsedConfig };
+    } else {
+      const initialStateConfig = (typeof context.initialState === 'object' && context.initialState !== null)
+        ? context.initialState as Partial<Config>
+        : {};
+      initialConfig = { ...DEFAULT_CONFIG, ...initialStateConfig };
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(initialConfig));
+    }
+
+    console.log("Debug: Initial config loaded:", initialConfig);
+    return initialConfig;
   });
 
   const settingsActionHandler = useCallback(
     (action: SettingsTreeAction) => {
-      setConfig((prevConfig) => settingsActionReducer(prevConfig, action));
+      setConfig((prevConfig) => {
+        const newConfig = settingsActionReducer(prevConfig, action);
+        console.log("Debug: Config updated:", newConfig);
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newConfig));
+        return newConfig;
+      });
     },
     [setConfig],
   );
 
   // Register the settings tree
   useEffect(() => {
+    context.saveState(config);
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(config));
+    console.log("Debug: Config saved to local storage:", config);
     context.updatePanelSettingsEditor({
       actionHandler: settingsActionHandler,
       nodes: buildSettingsTree(config, topics),
