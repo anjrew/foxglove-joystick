@@ -1,3 +1,4 @@
+
 export function GamepadDebug(props: any) {
   const gamepadDisplay = Object.keys(props.gamepads).map((gamepadId) => {
     return (

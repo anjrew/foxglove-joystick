@@ -22,6 +22,13 @@ export interface ButtonConfig {
   button: number;
 }
 
+export interface AnalogButtonConfig {
+  type: string;
+  text: string;
+  rot: number;
+  button: number;
+}
+
 export interface BarConfig {
   type: string;
   x: number;

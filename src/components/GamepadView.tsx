@@ -5,7 +5,7 @@ import cheapo from "./display-mappings/cheapo.json";
 import ipega9083s from "./display-mappings/ipega-9083s.json";
 import steamdeck from "./display-mappings/steamdeck.json";
 import xbox from "./display-mappings/xbox.json";
-import { Joy, ButtonConfig, BarConfig, StickConfig, DPadConfig, DisplayMapping } from "../types";
+import { Joy, ButtonConfig, BarConfig, StickConfig, DPadConfig, DisplayMapping, AnalogButtonConfig } from "../types";
 
 const colStroke = "#ddd";
 const colPrim = "blue";

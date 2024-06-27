@@ -126,9 +126,10 @@ function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX
   useEffect(() => {
     const latestJoy = messages?.[messages.length - 1]?.message as Joy | undefined;
     if (latestJoy) {
+      console.log("Joy message received, updating...", latestJoy)
       const tmpMsg = {
         header: {
-          stamp: latestJoy.header.stamp,
+          stamp: latestJoy?.header?.stamp,
           frame_id: config.publishFrameId,
         },
         axes: Array.from(latestJoy.axes),
@@ -159,6 +160,7 @@ function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX
           return;
         }
 
+        console.log("Gamepad " + gp.index + " " + config.layoutName + " updating!");
         if (config.layoutName === "xbox") {
           const tmpJoy = {
             header: {
@@ -168,6 +170,7 @@ function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX
             axes: gp.axes.map((axis) => -axis),
             buttons: gp.buttons.map((button, index) => index == 7 || index == 6 ? button.value : (button.pressed ? 1 : 0)),
           } as Joy;
+          console.log("Xbox Joy message updated", tmpJoy);
           setJoy(tmpJoy);
         } else {
           const tmpJoy = {
