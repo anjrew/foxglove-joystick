@@ -159,16 +159,27 @@ function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX
           return;
         }
 
-        const tmpJoy = {
-          header: {
-            frame_id: config.publishFrameId,
-            stamp: fromDate(new Date()), // TODO: /clock
-          },
-          axes: gp.axes.map((axis) => -axis),
-          buttons: gp.buttons.map((button) => (button.pressed ? 1 : 0)),
-        } as Joy;
-
-        setJoy(tmpJoy);
+        if (config.layoutName === "xbox") {
+          const tmpJoy = {
+            header: {
+              frame_id: config.publishFrameId,
+              stamp: fromDate(new Date()), // TODO: /clock
+            },
+            axes: gp.axes.map((axis) => -axis),
+            buttons: gp.buttons.map((button, index) => index == 7 || index == 6 ? button.value : (button.pressed ? 1 : 0)),
+          } as Joy;
+          setJoy(tmpJoy);
+        } else {
+          const tmpJoy = {
+            header: {
+              frame_id: config.publishFrameId,
+              stamp: fromDate(new Date()), // TODO: /clock
+            },
+            axes: gp.axes.map((axis) => -axis),
+            buttons: gp.buttons.map((button) => (button.pressed ? 1 : 0)),
+          } as Joy;
+          setJoy(tmpJoy);
+        }
       },
       [config.dataSource, config.gamepadId, config.publishFrameId],
     ),
