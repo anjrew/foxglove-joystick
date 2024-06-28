@@ -7,7 +7,7 @@ import {
   SettingsTreeAction,
 } from "@foxglove/studio";
 import { FormGroup, FormControlLabel, Switch } from "@mui/material";
-import { useEffect, useLayoutEffect, useState, useCallback, } from "react";
+import { useEffect, useLayoutEffect, useState, useCallback } from "react";
 import ReactDOM from "react-dom";
 
 import { GamepadView } from "./components/GamepadView";
@@ -126,10 +126,10 @@ function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX
   useEffect(() => {
     const latestJoy = messages?.[messages.length - 1]?.message as Joy | undefined;
     if (latestJoy) {
-      console.log("Joy message received, updating...", latestJoy)
+      console.log("Joy message received, updating...", latestJoy);
       const tmpMsg = {
         header: {
-          stamp: latestJoy?.header?.stamp,
+          stamp: latestJoy.header.stamp,
           frame_id: config.publishFrameId,
         },
         axes: Array.from(latestJoy.axes),
@@ -168,7 +168,9 @@ function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX
               stamp: fromDate(new Date()), // TODO: /clock
             },
             axes: gp.axes.map((axis) => -axis),
-            buttons: gp.buttons.map((button, index) => index == 7 || index == 6 ? button.value : (button.pressed ? 1 : 0)),
+            buttons: gp.buttons.map((button, index) =>
+              index == 7 || index == 6 ? button.value : button.pressed ? 1 : 0,
+            ),
           } as Joy;
           console.log("Xbox Joy message updated", tmpJoy);
           setJoy(tmpJoy);
@@ -356,11 +358,7 @@ function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX
       ) : null}
       {config.displayMode === "auto" ? <SimpleButtonView joy={joy} /> : null}
       {config.displayMode === "custom" ? (
-        <GamepadView
-          joy={joy}
-          cbInteractChange={interactiveCb}
-          layoutName={config.layoutName}
-        />
+        <GamepadView joy={joy} cbInteractChange={interactiveCb} layoutName={config.layoutName} />
       ) : null}
     </div>
   );
