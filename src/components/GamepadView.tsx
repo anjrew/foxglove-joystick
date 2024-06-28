@@ -5,15 +5,7 @@ import cheapo from "./display-mappings/cheapo.json";
 import ipega9083s from "./display-mappings/ipega-9083s.json";
 import steamdeck from "./display-mappings/steamdeck.json";
 import xbox from "./display-mappings/xbox.json";
-import {
-  Joy,
-  ButtonConfig,
-  BarConfig,
-  StickConfig,
-  DPadConfig,
-  DisplayMapping,
-  AnalogButtonConfig,
-} from "../types";
+import { Joy, ButtonConfig, BarConfig, StickConfig, DPadConfig, DisplayMapping } from "../types";
 
 const colStroke = "#ddd";
 const colPrim = "blue";
@@ -214,8 +206,7 @@ export function GamepadView(props: {
 
   useEffect(() => {
     const elements = document.getElementsByClassName("preventPan");
-
-    Array.prototype.forEach.call(elements, (el) => {
+    Array.prototype.forEach.call(elements, (el: HTMLElement) => {
       el.addEventListener("touchstart", preventPan, { passive: false });
       el.addEventListener("touchend", preventPan, { passive: false });
       el.addEventListener("touchmove", preventPan, { passive: false });
@@ -223,7 +214,7 @@ export function GamepadView(props: {
     });
 
     return () => {
-      Array.prototype.forEach.call(elements, (el) => {
+      Array.prototype.forEach.call(elements, (el: HTMLElement) => {
         el.removeEventListener("touchstart", preventPan);
         el.removeEventListener("touchend", preventPan);
         el.removeEventListener("touchmove", preventPan);
@@ -446,15 +437,6 @@ export function GamepadView(props: {
       const axYVal = joy?.axes[axisY] ?? 0;
       dispItems.push(generateDPad(axXVal, axYVal, x, y, 30));
     }
-
-    // Auto indexing code to bring back later?
-    // const xi = index % 4;
-    // const yi = Math.floor(index / 4);
-    // const cx = center + xi*(size + 5);
-    // const cy = center + yi*(size + 5);
-
-    // const cx = cc ? cc[0] : center + xi*(size + 5);
-    // const cy = cc ? cc[1] : center + yi*(size + 5);
   }
 
   return (

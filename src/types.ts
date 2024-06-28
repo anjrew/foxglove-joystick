@@ -1,6 +1,13 @@
 import { Time } from "@foxglove/rostime";
 
-type Header = {
+export type KbMap = {
+  button: number;
+  axis: number;
+  direction: number;
+  value: number;
+};
+
+export type Header = {
   stamp: Time;
   frame_id: string;
 };

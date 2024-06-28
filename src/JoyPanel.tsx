@@ -1,66 +1,35 @@
-import { fromDate } from "@foxglove/rostime";
 import {
   Immutable,
   MessageEvent,
   PanelExtensionContext,
-  Topic,
   SettingsTreeAction,
-} from "@foxglove/studio";
+  Topic,
+} from "@foxglove/extension";
+import { fromDate } from "@foxglove/rostime";
 import { FormGroup, FormControlLabel, Switch } from "@mui/material";
 import { useEffect, useLayoutEffect, useState, useCallback } from "react";
 import ReactDOM from "react-dom";
 
 import { GamepadView } from "./components/GamepadView";
 import { SimpleButtonView } from "./components/SimpleButtonView";
-import kbmapping1 from "./components/kbmapping1.json";
+import { createDefaultConfig, createKeyboardMapping } from "./defaultConfig";
 import { useGamepad } from "./hooks/useGamepad";
-import { Config, buildSettingsTree, settingsActionReducer } from "./panelSettings";
-import { Joy } from "./types";
+import { Config, Options, buildSettingsTree, settingsActionReducer } from "./panelSettings";
+import { Joy, KbMap } from "./types";
 
-type KbMap = {
-  button: number;
-  axis: number;
-  direction: number;
-  value: number;
-};
-
-function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX.Element {
+export function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX.Element {
   const [topics, setTopics] = useState<undefined | Immutable<Topic[]>>();
   const [messages, setMessages] = useState<undefined | Immutable<MessageEvent[]>>();
   const [joy, setJoy] = useState<Joy | undefined>();
   const [pubTopic, setPubTopic] = useState<string | undefined>();
   const [kbEnabled, setKbEnabled] = useState<boolean>(true);
-  const [trackedKeys, setTrackedKeys] = useState<Map<string, KbMap> | undefined>(() => {
-    const keyMap = new Map<string, KbMap>();
-
-    for (const [key, value] of Object.entries(kbmapping1)) {
-      const k: KbMap = {
-        button: value.button,
-        axis: value.axis,
-        direction: value.direction === "+" ? 1 : 0,
-        value: 0,
-      };
-      keyMap.set(key, k);
-    }
-    return keyMap;
-  });
+  const [trackedKeys, setTrackedKeys] = useState<Map<string, KbMap> | undefined>(() =>
+    createKeyboardMapping(),
+  );
 
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
 
-  const [config, setConfig] = useState<Config>(() => {
-    const partialConfig = context.initialState as Partial<Config>;
-    partialConfig.subJoyTopic ??= "/joy";
-    partialConfig.pubJoyTopic ??= "/joy";
-    partialConfig.publishMode ??= false;
-    partialConfig.publishFrameId ??= "";
-    partialConfig.dataSource ??= "sub-joy-topic";
-    partialConfig.displayMode ??= "auto";
-    partialConfig.debugGamepad ??= false;
-    partialConfig.layoutName ??= "steamdeck";
-    partialConfig.mapping_name ??= "TODO";
-    partialConfig.gamepadId ??= 0;
-    return partialConfig as Config;
-  });
+  const [config, setConfig] = useState<Config>(() => createDefaultConfig(context));
 
   const settingsActionHandler = useCallback(
     (action: SettingsTreeAction) => {
@@ -79,37 +48,13 @@ function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX
 
   // We use a layout effect to setup render handling for our panel. We also setup some topic subscriptions.
   useLayoutEffect(() => {
-    // The render handler is run by the broader studio system during playback when your panel
-    // needs to render because the fields it is watching have changed. How you handle rendering depends on your framework.
-    // You can only setup one render handler - usually early on in setting up your panel.
-    //
-    // Without a render handler your panel will never receive updates.
-    //
-    // The render handler could be invoked as often as 60hz during playback if fields are changing often.
     context.onRender = (renderState, done) => {
-      // render functions receive a _done_ callback. You MUST call this callback to indicate your panel has finished rendering.
-      // Your panel will not receive another render callback until _done_ is called from a prior render. If your panel is not done
-      // rendering before the next render call, studio shows a notification to the user that your panel is delayed.
-      //
-      // Set the done callback into a state variable to trigger a re-render.
       setRenderDone(() => done);
-
-      // We may have new topics - since we are also watching for messages in the current frame, topics may not have changed
-      // It is up to you to determine the correct action when state has not changed.
       setTopics(renderState.topics);
-
-      // currentFrame has messages on subscribed topics since the last render call
       setMessages(renderState.currentFrame);
     };
 
-    // After adding a render handler, you must indicate which fields from RenderState will trigger updates.
-    // If you do not watch any fields then your panel will never render since the panel context will assume you do not want any updates.
-
-    // tell the panel context that we care about any update to the _topic_ field of RenderState
     context.watch("topics");
-
-    // tell the panel context we want messages for the current frame for topics we've subscribed to
-    // This corresponds to the _currentFrame_ field of render state.
     context.watch("currentFrame");
   }, [context]);
 
@@ -141,12 +86,30 @@ function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX
 
   useGamepad({
     didConnect: useCallback((gp: Gamepad) => {
-      // TODO update the gamepad ID list
+      setConfig((prevConfig: Config) => {
+        return {
+          ...prevConfig,
+          options: {
+            ...prevConfig.options,
+            availableControllers: prevConfig.options.availableControllers.concat([gp]),
+          },
+        };
+      });
       console.log("Gamepad " + gp.index + " connected!");
     }, []),
 
     didDisconnect: useCallback((gp: Gamepad) => {
-      // TODO update the gamepad ID list
+      setConfig((prevConfig: Config) => {
+        return {
+          ...prevConfig,
+          options: {
+            ...prevConfig.options,
+            availableControllers: prevConfig.options.availableControllers.filter(
+              (c) => c.id !== gp.id,
+            ),
+          },
+        };
+      });
       console.log("Gamepad " + gp.index + " disconnected!");
     }, []),
 
@@ -162,14 +125,17 @@ function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX
 
         console.log("Gamepad " + gp.index + " " + config.layoutName + " updating!");
         if (config.layoutName === "xbox") {
+          const triggerLeftAxis: number = gp.buttons[6]?.value ?? 0;
+          const triggerRightAxis = gp.buttons[7]?.value ?? 0;
+
           const tmpJoy = {
             header: {
               frame_id: config.publishFrameId,
-              stamp: fromDate(new Date()), // TODO: /clock
+              stamp: fromDate(new Date()),
             },
-            axes: gp.axes.map((axis) => -axis),
+            axes: gp.axes.map((axis) => -axis).concat([triggerLeftAxis, triggerRightAxis]),
             buttons: gp.buttons.map((button, index) =>
-              index == 7 || index == 6 ? button.value : button.pressed ? 1 : 0,
+              index === 7 || index === 6 ? button.value : button.pressed ? 1 : 0,
             ),
           } as Joy;
           console.log("Xbox Joy message updated", tmpJoy);
@@ -178,7 +144,7 @@ function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX
           const tmpJoy = {
             header: {
               frame_id: config.publishFrameId,
-              stamp: fromDate(new Date()), // TODO: /clock
+              stamp: fromDate(new Date()),
             },
             axes: gp.axes.map((axis) => -axis),
             buttons: gp.buttons.map((button) => (button.pressed ? 1 : 0)),
@@ -186,7 +152,7 @@ function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX
           setJoy(tmpJoy);
         }
       },
-      [config.dataSource, config.gamepadId, config.publishFrameId],
+      [config.dataSource, config.gamepadId, config.publishFrameId, config.layoutName],
     ),
   });
 
@@ -194,10 +160,10 @@ function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     setTrackedKeys((oldTrackedKeys) => {
-      if (oldTrackedKeys?.has(event.key)) {
+      if (oldTrackedKeys?.has(event.key) ?? false) {
         const newKeys = new Map(oldTrackedKeys);
         const k = newKeys.get(event.key);
-        if (k) {
+        if (k != undefined) {
           k.value = 1;
         }
         return newKeys;
@@ -262,7 +228,7 @@ function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX
     const tmpJoy = {
       header: {
         frame_id: config.publishFrameId,
-        stamp: fromDate(new Date()), // TODO: /clock
+        stamp: fromDate(new Date()),
       },
       axes,
       buttons,
@@ -309,18 +275,6 @@ function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX
 
   const handleKbSwitch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setKbEnabled(event.target.checked);
-
-    // TODO Clear key values when disabled
-    // setTrackedKeys((oldTrackedKeys) => {
-    //   const newKeys = new Map(oldTrackedKeys);
-    //   newKeys.forEach((value, key, map) => {
-    //     const k = map.get(key);
-    //     if (k) {
-    //       k.value = 0;
-    //     }
-    //   });
-    //   return newKeys;
-    // });
   };
 
   const interactiveCb = useCallback(
@@ -331,7 +285,7 @@ function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX
       const tmpJoy = {
         header: {
           frame_id: config.publishFrameId,
-          stamp: fromDate(new Date()), // TODO: /clock
+          stamp: fromDate(new Date()),
         },
         axes: interactiveJoy.axes,
         buttons: interactiveJoy.buttons,
@@ -364,10 +318,12 @@ function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX
   );
 }
 export function initJoyPanel(context: PanelExtensionContext): () => void {
+  // eslint-disable-next-line react/no-deprecated
   ReactDOM.render(<JoyPanel context={context} />, context.panelElement);
 
   // Return a function to run when the panel is removed
   return () => {
+    // eslint-disable-next-line react/no-deprecated
     ReactDOM.unmountComponentAtNode(context.panelElement);
   };
 }

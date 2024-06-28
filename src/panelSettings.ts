@@ -1,6 +1,11 @@
-import { Topic, SettingsTreeNodes, SettingsTreeFields, SettingsTreeAction } from "@foxglove/studio";
+import {
+  Topic,
+  SettingsTreeAction,
+  SettingsTreeFields,
+  SettingsTreeNodes,
+} from "@foxglove/extension";
 import { produce } from "immer";
-import * as _ from "lodash-es";
+import * as _ from "lodash";
 
 export type Config = {
   dataSource: string;
@@ -13,6 +18,11 @@ export type Config = {
   debugGamepad: boolean;
   layoutName: string;
   mapping_name: string;
+  options: Options;
+};
+
+export type Options = {
+  availableControllers: Gamepad[];
 };
 
 export function settingsActionReducer(prevConfig: Config, action: SettingsTreeAction): Config {
@@ -25,6 +35,8 @@ export function settingsActionReducer(prevConfig: Config, action: SettingsTreeAc
 }
 
 export function buildSettingsTree(config: Config, topics?: readonly Topic[]): SettingsTreeNodes {
+  const options: Options = config.options;
+
   const dataSourceFields: SettingsTreeFields = {
     dataSource: {
       label: "Data Source",
@@ -50,7 +62,7 @@ export function buildSettingsTree(config: Config, topics?: readonly Topic[]): Se
       ],
     },
     subJoyTopic: {
-      label: "Subsc. Joy Topic",
+      label: "Subscribe. Joy Topic",
       input: "select",
       value: config.subJoyTopic,
       disabled: config.dataSource !== "sub-joy-topic",
@@ -67,24 +79,10 @@ export function buildSettingsTree(config: Config, topics?: readonly Topic[]): Se
       input: "select",
       value: config.gamepadId.toString(),
       disabled: config.dataSource !== "gamepad",
-      options: [
-        {
-          label: "0",
-          value: "0",
-        },
-        {
-          label: "1",
-          value: "1",
-        },
-        {
-          label: "2",
-          value: "2",
-        },
-        {
-          label: "TODO Make this auto populate",
-          value: "3",
-        },
-      ],
+      options: options.availableControllers.map((gp: Gamepad) => ({
+        label: gp.id,
+        value: gp.index.toString(),
+      })),
     },
     gamepadMapping: {
       label: "GP->Joy Mapping",
@@ -108,7 +106,7 @@ export function buildSettingsTree(config: Config, topics?: readonly Topic[]): Se
       label: "Publish Mode",
       input: "boolean",
       value: config.publishMode,
-      disabled: config.dataSource === "sub-joy-topic", // TODO also need to force publish mode to false when in sub mode
+      disabled: config.dataSource === "sub-joy-topic",
     },
     pubJoyTopic: {
       label: "Pub Joy Topic",
