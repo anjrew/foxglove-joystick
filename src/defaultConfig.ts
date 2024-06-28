@@ -1,7 +1,7 @@
 import { PanelExtensionContext } from "@foxglove/extension";
 
 import kbmapping1 from "./components/kbmapping1.json";
-import { Config, Options } from "./panelSettings"; // Assuming you have a Config type defined
+import { Config } from "./panelSettings";
 import { KbMap } from "./types";
 
 export const createDefaultConfig = (context: PanelExtensionContext): Config => {
@@ -23,7 +23,6 @@ export const createDefaultConfig = (context: PanelExtensionContext): Config => {
     },
   };
 };
-
 
 export const createKeyboardMapping = (): Map<string, KbMap> => {
   {
