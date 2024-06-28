@@ -1,13 +1,12 @@
 import { Button, LinearProgress } from "@mui/material";
 
-// TODO copy theming from another extension
 function getButtonColor(value: number): string {
   // Convert value to a hue between 120 (green) and 0 (red)
   const hue = 120 - value * 120;
   return `hsl(${hue}, 100%, 50%)`;
 }
 
-export function SimpleButtonView(props: any) {
+export function SimpleButtonView(props: any): any {
   const buttons = props.joy
     ? props.joy.buttons.map((item: number, index: number) => (
         <Button

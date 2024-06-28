@@ -1,8 +1,9 @@
 import { PanelExtensionContext } from "@foxglove/extension";
 
-import kbmapping1 from "./components/kbmapping1.json";
 import { Config } from "./panelSettings";
-import { KbMap } from "./types";
+import { kbmapping1 } from "../mappings";
+import { KbMap } from "../types";
+
 
 export const createDefaultConfig = (context: PanelExtensionContext): Config => {
   const partialConfig = context.initialState as Partial<Config>;
