@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { GamepadBackground } from "./GamepadBackground";
-import cheapo from "./display-mappings/cheapo.json";
-import ipega9083s from "./display-mappings/ipega-9083s.json";
-import steamdeck from "./display-mappings/steamdeck.json";
-import xbox from "./display-mappings/xbox.json";
-import { Joy, ButtonConfig, BarConfig, StickConfig, DPadConfig, DisplayMapping } from "../types";
+import cheapo from "../../mappings/cheapo.json";
+import ipega9083s from "../../mappings/ipega-9083s.json";
+import steamdeck from "../../mappings/steamdeck.json";
+import xbox from "../../mappings/xbox.json";
+import { Joy, ButtonConfig, BarConfig, StickConfig, DPadConfig, DisplayMapping } from "../../types/types";
 
 const colStroke = "#ddd";
 const colPrim = "blue";

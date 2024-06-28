@@ -10,12 +10,12 @@ import { FormGroup, FormControlLabel, Switch } from "@mui/material";
 import { useEffect, useLayoutEffect, useState, useCallback } from "react";
 import ReactDOM from "react-dom";
 
-import { GamepadView } from "./components/GamepadView";
-import { SimpleButtonView } from "./components/SimpleButtonView";
-import { createDefaultConfig, createKeyboardMapping } from "./defaultConfig";
-import { useGamepad } from "./hooks/useGamepad";
-import { Config, Options, buildSettingsTree, settingsActionReducer } from "./panelSettings";
-import { Joy, KbMap } from "./types";
+import { Config, buildSettingsTree, settingsActionReducer } from "../../config/panelSettings";
+import { useGamepad } from "../../hooks/useGamepad";
+import { Joy, KbMap } from "../../types";
+import { GamepadView } from "../GamepadView/GamepadView";
+import { SimpleButtonView } from "../SimpleButtonView";
+import { createDefaultConfig, createKeyboardMapping } from "../config";
 
 export function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX.Element {
   const [topics, setTopics] = useState<undefined | Immutable<Topic[]>>();
