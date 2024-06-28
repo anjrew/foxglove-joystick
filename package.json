@@ -15,12 +15,16 @@
     "lint": "eslint --report-unused-disable-directives --fix .",
     "local-install": "foxglove-extension install",
     "package": "foxglove-extension package",
-    "pretest": "foxglove-extension pretest"
+    "test": "jest"
   },
   "devDependencies": {
     "@foxglove/eslint-plugin": "1.0.1",
+    "@foxglove/extension": "latest",
     "@foxglove/rostime": "^1.1.2",
-    "@foxglove/studio": "1.83.0",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^14.3.1",
+    "@testing-library/user-event": "^14.4.3",
+    "@types/jest": "^29.5.12",
     "@types/react": "18.2.46",
     "@types/react-dom": "18.2.18",
     "@typescript-eslint/eslint-plugin": "6.17.0",
@@ -35,9 +39,12 @@
     "eslint-plugin-prettier": "5.1.2",
     "eslint-plugin-react": "7.33.2",
     "eslint-plugin-react-hooks": "4.6.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.5.0",
     "prettier": "3.1.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "ts-jest": "^29.1.5",
     "typescript": "5.3.3"
   },
   "dependencies": {
