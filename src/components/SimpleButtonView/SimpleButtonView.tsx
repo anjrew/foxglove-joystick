@@ -1,4 +1,7 @@
+/* eslint-disable react/jsx-key */
 import { Button, LinearProgress } from "@mui/material";
+
+import { Joy } from "../../types";
 
 function getButtonColor(value: number): string {
   // Convert value to a hue between 120 (green) and 0 (red)
@@ -6,7 +9,7 @@ function getButtonColor(value: number): string {
   return `hsl(${hue}, 100%, 50%)`;
 }
 
-export function SimpleButtonView(props: any): any {
+export function SimpleButtonView(props: { joy: Joy | undefined }): never {
   const buttons = props.joy
     ? props.joy.buttons.map((item: number, index: number) => (
         <Button
