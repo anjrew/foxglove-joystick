@@ -4,6 +4,7 @@ import ipega9083s from "../../mappings/ipega-9083s.json";
 import steamdeck from "../../mappings/steamdeck.json";
 import xbox from "../../mappings/xbox.json";
 import { Joy, ButtonConfig, StickConfig, DisplayMapping } from "../../types";
+import { getGamepadMapping } from "../../utils/gamepadMappings";
 
 interface Interaction {
   pointerId: number;
@@ -25,26 +26,8 @@ export const useGamepadState = (layoutName: string, cbInteractChange: (joy: Joy)
   const [numButtons, setNumButtons] = useState<number>(0);
   const [numAxes, setNumAxes] = useState<number>(0);
   const [interactions, setInteractions] = useState<Interaction[]>([]);
-  const [displayMapping, setDisplayMapping] = useState<DisplayMapping>([]);
 
-  useEffect(() => {
-    switch (layoutName) {
-      case "steamdeck":
-        setDisplayMapping(steamdeck);
-        break;
-      case "ipega-9083s":
-        setDisplayMapping(ipega9083s);
-        break;
-      case "xbox":
-        setDisplayMapping(xbox);
-        break;
-      case "cheapo":
-        setDisplayMapping(cheapo);
-        break;
-      default:
-        setDisplayMapping([]);
-    }
-  }, [layoutName]);
+  const displayMapping = getGamepadMapping(layoutName);
 
   useEffect(() => {
     if (displayMapping.length === 0) {

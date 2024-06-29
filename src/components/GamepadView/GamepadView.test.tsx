@@ -3,22 +3,7 @@ import { GamepadView } from './GamepadView';
 import { Joy } from '../../types';
 import * as gamepadMappings from '../../utils/gamepadMappings';
 
-// Mock the child components
-jest.mock('../GamepadBackground', () => ({
-  GamepadBackground: () => <div data-testid="gamepad-background" />,
-}));
-jest.mock('../GamepadButton', () => ({
-  GamepadButton: () => <div data-testid="gamepad-button" />,
-}));
-jest.mock('../GamepadStick', () => ({
-  GamepadStick: () => <div data-testid="gamepad-stick" />,
-}));
-jest.mock('../GamepadDPad', () => ({
-  GamepadDPad: () => <div data-testid="gamepad-dpad" />,
-}));
-jest.mock('../GamepadBar', () => ({
-  GamepadBar: () => <div data-testid="gamepad-bar" />,
-}));
+
 
 // Mock the custom hooks
 jest.mock('../../hooks/useGamepadInteractions', () => ({
