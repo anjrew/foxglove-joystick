@@ -4,7 +4,29 @@ import { Joy, KbMap } from "../../types";
 import { PanelConfig, createDefaultConfig, createKeyboardMapping } from "../../config";
 import { settingsActionReducer } from "../../config/panelSettings";
 
-export function useJoyPanelState(context: PanelExtensionContext) {
+
+export interface UseJoyPanelStateResult {
+  topics: undefined | Immutable<Topic[]>;
+  setTopics: React.Dispatch<React.SetStateAction<undefined | Immutable<Topic[]>>>;
+  messages: undefined | Immutable<MessageEvent[]>;
+  setMessages: React.Dispatch<React.SetStateAction<undefined | Immutable<MessageEvent[]>>>;
+  joy: Joy | undefined;
+  setJoy: React.Dispatch<React.SetStateAction<Joy | undefined>>;
+  pubTopic: string | undefined;
+  setPubTopic: React.Dispatch<React.SetStateAction<string | undefined>>;
+  kbEnabled: boolean;
+  setKbEnabled: React.Dispatch<React.SetStateAction<boolean>>;
+  trackedKeys: Map<string, KbMap> | undefined;
+  setTrackedKeys: React.Dispatch<React.SetStateAction<Map<string, KbMap> | undefined>>;
+  renderDone: (() => void) | undefined;
+  setRenderDone: React.Dispatch<React.SetStateAction<(() => void) | undefined>>;
+  config: PanelConfig;
+  setConfig: React.Dispatch<React.SetStateAction<PanelConfig>>;
+  settingsActionHandler: (action: SettingsTreeAction) => void;
+}
+
+
+export function useJoyPanelState(context?: PanelExtensionContext) {
   const [topics, setTopics] = useState<undefined | Immutable<Topic[]>>();
   const [messages, setMessages] = useState<undefined | Immutable<MessageEvent[]>>();
   const [joy, setJoy] = useState<Joy | undefined>();

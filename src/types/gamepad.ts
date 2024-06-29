@@ -39,4 +39,21 @@ export interface DPadConfig {
   axisY: number;
 }
 
-export type DisplayMapping = (ButtonConfig | BarConfig | StickConfig | DPadConfig)[];
+
+export interface Interaction {
+  pointerId: number;
+  buttonIdx: number;
+  axis1Idx: number;
+  axis2Idx: number;
+  buttonVal: number;
+  axis1Val: number;
+  axis2Val: number;
+}
+
+export enum PointerEventType {
+  Down,
+  Move,
+  Up,
+}
+
+export type DisplayMapping = Array<ButtonConfig | BarConfig | StickConfig | DPadConfig>;

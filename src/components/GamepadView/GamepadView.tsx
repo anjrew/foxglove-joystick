@@ -5,172 +5,9 @@ import cheapo from "../../mappings/cheapo.json";
 import ipega9083s from "../../mappings/ipega-9083s.json";
 import steamdeck from "../../mappings/steamdeck.json";
 import xbox from "../../mappings/xbox.json";
-import { Joy, ButtonConfig, BarConfig, StickConfig, DPadConfig, DisplayMapping } from "../../types";
+import { Joy, ButtonConfig, BarConfig, StickConfig, DPadConfig, DisplayMapping, Interaction, PointerEventType } from "../../types";
+import { generateBar, generateButton, generateDPad, generateStick } from "./gamepadUtils";
 
-const colStroke = "#ddd";
-const colPrim = "blue";
-const colSec = "cornflowerblue";
-const colAlt = "red";
-
-interface Interaction {
-  pointerId: number;
-  buttonIdx: number;
-  axis1Idx: number;
-  axis2Idx: number;
-  buttonVal: number;
-  axis1Val: number;
-  axis2Val: number;
-}
-
-enum PointerEventType {
-  Down,
-  Move,
-  Up,
-}
-
-function generateButton(
-  value: number,
-  x: number,
-  y: number,
-  text: string,
-  radius: number,
-  downCb: (e: React.PointerEvent) => void,
-  upCb: (e: React.PointerEvent) => void,
-) {
-  return (
-    <>
-      <circle
-        cx={x}
-        cy={y}
-        fill={value > 0 ? colAlt : colPrim}
-        r={radius}
-        stroke={colStroke}
-        strokeWidth={2}
-        onPointerDown={downCb}
-        onPointerUp={upCb}
-      />
-      <text
-        textAnchor="middle"
-        x={x}
-        y={y}
-        fill="white"
-        dominantBaseline="middle"
-        pointerEvents="none"
-      >
-        {text}
-      </text>
-    </>
-  );
-}
-
-function generateBar(value: number, x: number, y: number, rot: number) {
-  const width = 80;
-  const height = 10;
-  const fracwidth = ((-value + 1) * width) / 2;
-
-  const transform =
-    "translate(" + x.toString() + "," + y.toString() + ") rotate(" + rot.toString() + ")";
-  return (
-    <>
-      <rect
-        width={fracwidth}
-        height={height}
-        x={-width / 2}
-        y={-height / 2}
-        fill={colPrim}
-        transform={transform}
-      />
-
-      <rect
-        width={width}
-        height={height}
-        x={-width / 2}
-        y={-height / 2}
-        fill="transparent"
-        stroke={colStroke}
-        transform={transform}
-      />
-    </>
-  );
-}
-
-function generateStick(
-  valueX: number,
-  valueY: number,
-  valueButton: number,
-  x: number,
-  y: number,
-  radius: number,
-  downCb: (e: React.PointerEvent) => void,
-  moveCb: (e: React.PointerEvent) => void,
-  upCb: (e: React.PointerEvent) => void,
-) {
-  const offX = -valueX * radius;
-  const offY = -valueY * radius;
-
-  return (
-    <>
-      <circle
-        cx={x}
-        cy={y}
-        fill={colPrim}
-        r={radius}
-        stroke={colStroke}
-        strokeWidth={2}
-        onPointerDown={downCb}
-        onPointerMove={moveCb}
-        onPointerUp={upCb}
-      />
-      <circle
-        cx={x + offX}
-        cy={y + offY}
-        fill={valueButton > 0 ? colAlt : colSec}
-        r={radius * 0.5}
-        stroke="none"
-        strokeWidth={2}
-        pointerEvents="none"
-      />
-    </>
-  );
-}
-
-function generateDPad(valueX: number, valueY: number, x: number, y: number, radius: number) {
-  const transform = "translate(" + x.toString() + "," + y.toString() + ")";
-
-  return (
-    <>
-      <circle cx={x} cy={y} fill="none" r={radius} stroke={colStroke} strokeWidth={2} />
-      <polygon
-        points="10,15 0,25 -10,15"
-        fill={valueY < 0 ? colAlt : colPrim}
-        stroke={colStroke}
-        strokeWidth={2}
-        transform={transform}
-      />
-      <polygon
-        points="10,-15 0,-25 -10,-15"
-        fill={valueY > 0 ? colAlt : colPrim}
-        stroke={colStroke}
-        strokeWidth={2}
-        transform={transform}
-      />
-      <polygon
-        points="15,10 25,0 15,-10"
-        fill={valueX < 0 ? colAlt : colPrim}
-        stroke={colStroke}
-        strokeWidth={2}
-        transform={transform}
-      />
-      <polygon
-        points="-15,10 -25,0 -15,-10"
-        fill={valueX > 0 ? colAlt : colPrim}
-        stroke={colStroke}
-        strokeWidth={2}
-        transform={transform}
-      />
-    </>
-  );
-}
 
 export function GamepadView(props: Readonly<{
   joy: Joy | undefined;
@@ -183,21 +20,19 @@ export function GamepadView(props: Readonly<{
   const [numButtons, setNumButtons] = useState<number>(0);
   const [numAxes, setNumAxes] = useState<number>(0);
   const [interactions, setInteractions] = useState<Interaction[]>([]);
-  const [displayMapping, setDisplayMapping] = useState<DisplayMapping>([]);
 
-  useEffect(() => {
-    if (layoutName === "steamdeck") {
-      setDisplayMapping(steamdeck);
-    } else if (layoutName === "ipega-9083s") {
-      setDisplayMapping(ipega9083s);
-    } else if (layoutName === "xbox") {
-      setDisplayMapping(xbox);
-    } else if (layoutName === "cheapo") {
-      setDisplayMapping(cheapo);
-    } else {
-      setDisplayMapping([]);
-    }
-  }, [layoutName]);
+  let displayMapping: DisplayMapping = [];
+  if (layoutName === "steamdeck") {
+    displayMapping = steamdeck;
+  } else if (layoutName === "ipega-9083s") {
+    displayMapping = ipega9083s;
+  } else if (layoutName === "xbox") {
+    displayMapping = xbox;
+  } else if (layoutName === "cheapo") {
+    displayMapping = cheapo;
+  } else {
+    displayMapping = [];
+  }
 
   // Prevent accidentally panning/zooming when touching the image
   const preventPan = useCallback((event: Event): void => {
@@ -231,14 +66,14 @@ export function GamepadView(props: Readonly<{
       setNumButtons(
         Math.max(
           ...displayMapping.map((item) =>
-            item.type === "button" ? (item as ButtonConfig).button : -1,
+            item.type === "button" ? (item as unknown as ButtonConfig).button : -1,
           ),
         ) + 1,
       );
       setNumAxes(
         displayMapping.reduce((tempMax, current) => {
           if (current.type === "stick") {
-            const mapping = current as StickConfig;
+            const mapping = current as unknown as StickConfig;
             return Math.max(tempMax, mapping.axisX, mapping.axisY);
           } else {
             return tempMax;
@@ -367,7 +202,7 @@ export function GamepadView(props: Readonly<{
 
   for (const mappingA of displayMapping) {
     if (mappingA.type === "button") {
-      const mapping = mappingA as ButtonConfig;
+      const mapping = mappingA as unknown as ButtonConfig;
       const index = mapping.button;
       const text = mapping.text;
       const x = mapping.x;
@@ -391,7 +226,7 @@ export function GamepadView(props: Readonly<{
         ),
       );
     } else if (mappingA.type === "bar") {
-      const mapping = mappingA as BarConfig;
+      const mapping = mappingA as unknown as BarConfig;
       const axis = mapping.axis;
       const x = mapping.x;
       const y = mapping.y;
@@ -399,7 +234,7 @@ export function GamepadView(props: Readonly<{
       const axVal = joy?.axes[axis] ?? 0;
       dispItems.push(generateBar(axVal, x, y, rot));
     } else if (mappingA.type === "stick") {
-      const mapping = mappingA as StickConfig;
+      const mapping = mappingA as unknown as StickConfig;
       const axisX = mapping.axisX;
       const axisY = mapping.axisY;
       const button = mapping.button;
@@ -428,7 +263,7 @@ export function GamepadView(props: Readonly<{
         ),
       );
     } else if (mappingA.type === "d-pad") {
-      const mapping = mappingA as DPadConfig;
+      const mapping = mappingA as unknown as DPadConfig;
       const axisX = mapping.axisX;
       const axisY = mapping.axisY;
       const x = mapping.x;

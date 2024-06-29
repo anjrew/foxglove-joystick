@@ -115,7 +115,7 @@ export function useJoyPanelEffects({
   }, [config.dataSource, config.publishFrameId, kbEnabled, trackedKeys, setJoy]);
 
   // Advertise the topic to publish
-  useEffect(() => {
+  useEffect((  ) => {
     if (config.publishMode) {
       setPubTopic(config.pubJoyTopic);
       context.advertise?.(config.pubJoyTopic, "sensor_msgs/Joy");
