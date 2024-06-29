@@ -5,7 +5,7 @@ import { PanelExtensionContext, SettingsTreeAction } from "@foxglove/extension";
 import { useJoyPanelState } from './useJoyPanelState';
 import { useJoyPanelCallbacks } from './joyPanelCallbacks';
 
-type JoyPanelEffectsProps = {
+export type JoyPanelEffectsProps = {
   context: PanelExtensionContext;
   config: ReturnType<typeof useJoyPanelState>['config'];
   setConfig: ReturnType<typeof useJoyPanelState>['setConfig'];

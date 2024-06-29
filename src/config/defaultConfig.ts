@@ -4,8 +4,8 @@ import { PanelConfig } from "./types";
 import { kbmapping1 } from "../mappings";
 import { KbMap } from "../types";
 
-export const createDefaultConfig = (context: PanelExtensionContext): PanelConfig => {
-  const partialConfig = context.initialState as Partial<PanelConfig>;
+export const createDefaultConfig = (context?: PanelExtensionContext): PanelConfig => {
+  const partialConfig = (context?.initialState ?? {}) as Partial<PanelConfig>;
 
   return {
     subJoyTopic: partialConfig.subJoyTopic ?? "/joy",
