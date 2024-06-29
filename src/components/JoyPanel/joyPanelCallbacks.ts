@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { fromDate } from "@foxglove/rostime";
-import { PanelConfig, Joy, KbMap } from '../../types';
+import { Joy, KbMap } from '../../types';
+import { PanelConfig } from '../../config';
 
 export function useJoyPanelCallbacks(
   config: PanelConfig,
@@ -55,26 +56,34 @@ export function useJoyPanelCallbacks(
   }, [setKbEnabled]);
 
   const handleGamepadConnect = useCallback((gp: Gamepad) => {
-    setConfig((prevConfig: { options: { availableControllers: Gamepad[]; }; }) => ({
+    setConfig((prevConfig: PanelConfig) => ({
       ...prevConfig,
       options: {
         ...prevConfig.options,
         availableControllers: [...prevConfig.options.availableControllers, gp],
       },
+      dataSource: prevConfig.dataSource,
+      subJoyTopic: prevConfig.subJoyTopic,
+      gamepadId: prevConfig.gamepadId,
+      publishMode: prevConfig.publishMode,
+      // Add other missing properties here
     }));
     console.log(`Gamepad ${gp.index} connected!`);
   }, [setConfig]);
 
   const handleGamepadDisconnect = useCallback((gp: Gamepad) => {
-    setConfig((prevConfig: { options: { availableControllers: Gamepad[]; }; }) => ({
-      ...prevConfig,
-      options: {
+    setConfig((prevConfig: PanelConfig) => {
+      const newOptions = {
         ...prevConfig.options,
         availableControllers: prevConfig.options.availableControllers.filter(
           (c) => c.id !== gp.id
         ),
-      },
-    }));
+      };
+      return {
+        ...prevConfig,
+        options: newOptions,
+      };
+    });
     console.log(`Gamepad ${gp.index} disconnected!`);
   }, [setConfig]);
 

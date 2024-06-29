@@ -1,37 +1,136 @@
-import { useState, useCallback } from 'react';
-import { Immutable, MessageEvent, Topic, SettingsTreeAction, PanelExtensionContext } from "@foxglove/extension";
+import { useEffect } from 'react';
+import { buildSettingsTree } from "../../config/panelSettings";
 import { Joy, KbMap } from "../../types";
-import { PanelConfig, createDefaultConfig, createKeyboardMapping } from "../../config";
-import { settingsActionReducer } from "../../config/panelSettings";
+import { PanelExtensionContext } from "@foxglove/extension";
+import { useJoyPanelState } from './useJoyPanelState';
+import { useJoyPanelCallbacks } from './joyPanelCallbacks';
 
-export function useJoyPanelState(context: PanelExtensionContext) {
-  const [topics, setTopics] = useState<undefined | Immutable<Topic[]>>();
-  const [messages, setMessages] = useState<undefined | Immutable<MessageEvent[]>>();
-  const [joy, setJoy] = useState<Joy | undefined>();
-  const [pubTopic, setPubTopic] = useState<string | undefined>();
-  const [kbEnabled, setKbEnabled] = useState<boolean>(true);
-  const [trackedKeys, setTrackedKeys] = useState<Map<string, KbMap> | undefined>(() =>
-    createKeyboardMapping(),
-  );
-  const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
-  const [config, setConfig] = useState<PanelConfig>(() => createDefaultConfig(context));
+type JoyPanelEffectsProps = {
+  context: PanelExtensionContext;
+  config: ReturnType<typeof useJoyPanelState>['config'];
+  setConfig: ReturnType<typeof useJoyPanelState>['setConfig'];
+  joy: Joy | undefined;
+  setJoy: (joy: Joy | undefined) => void;
+  pubTopic: string | undefined;
+  setPubTopic: (topic: string | undefined) => void;
+  kbEnabled: boolean;
+  trackedKeys: Map<string, KbMap> | undefined;
+  messages: ReturnType<typeof useJoyPanelState>['messages'];
+  callbacks: ReturnType<typeof useJoyPanelCallbacks>;
+};
 
-  const settingsActionHandler = useCallback(
-    (action: SettingsTreeAction) => {
-      setConfig((prevConfig) => settingsActionReducer(prevConfig, action));
-    },
-    [setConfig],
-  );
+export function useJoyPanelEffects({
+  context,
+  config,
+  setConfig,
+  joy,
+  setJoy,
+  pubTopic,
+  setPubTopic,
+  kbEnabled,
+  trackedKeys,
+  messages,
+  callbacks,
+}: JoyPanelEffectsProps) {
+  // Register the settings tree
+  useEffect(() => {
+    context.updatePanelSettingsEditor({
+      actionHandler: (action) => setConfig((prev) => buildSettingsTree(prev, action)),
+      nodes: buildSettingsTree(config),
+    });
+  }, [context, config, setConfig]);
 
-  return {
-    topics, setTopics,
-    messages, setMessages,
-    joy, setJoy,
-    pubTopic, setPubTopic,
-    kbEnabled, setKbEnabled,
-    trackedKeys, setTrackedKeys,
-    renderDone, setRenderDone,
-    config, setConfig,
-    settingsActionHandler,
-  };
+  // Subscribe to the relevant topic when in a recorded session
+  useEffect(() => {
+    if (config.dataSource === "sub-joy-topic") {
+      context.subscribe([{ topic: config.subJoyTopic }]);
+    } else {
+      context.unsubscribeAll();
+    }
+  }, [config.subJoyTopic, context, config.dataSource]);
+
+  // Update Joy state when new messages are received
+  useEffect(() => {
+    const latestJoy = messages?.[messages.length - 1]?.message as Joy | undefined;
+    if (latestJoy) {
+      console.log("Joy message received, updating...", latestJoy);
+      const tmpMsg = {
+        header: {
+          stamp: latestJoy.header.stamp,
+          frame_id: config.publishFrameId,
+        },
+        axes: Array.from(latestJoy.axes),
+        buttons: Array.from(latestJoy.buttons),
+      };
+      setJoy(tmpMsg);
+    }
+  }, [messages, config.publishFrameId, setJoy]);
+
+  // Keyboard event listeners
+  useEffect(() => {
+    if (config.dataSource === "keyboard" && kbEnabled) {
+      document.addEventListener("keydown", callbacks.handleKeyDown);
+      document.addEventListener("keyup", callbacks.handleKeyUp);
+      return () => {
+        document.removeEventListener("keydown", callbacks.handleKeyDown);
+        document.removeEventListener("keyup", callbacks.handleKeyUp);
+      };
+    }
+  }, [config.dataSource, kbEnabled, callbacks.handleKeyDown, callbacks.handleKeyUp]);
+
+  // Generate Joy from Keys
+  useEffect(() => {
+    if (config.dataSource !== "keyboard" || !kbEnabled) {
+      return;
+    }
+
+    const axes: number[] = [];
+    const buttons: number[] = [];
+
+    trackedKeys?.forEach((value) => {
+      if (value.button >= 0) {
+        while (buttons.length <= value.button) {
+          buttons.push(0);
+        }
+        buttons[value.button] = value.value;
+      } else if (value.axis >= 0) {
+        while (axes.length <= value.axis) {
+          axes.push(0);
+        }
+        axes[value.axis] += (value.direction > 0 ? 1 : -1) * value.value;
+      }
+    });
+
+    setJoy({
+      header: {
+        frame_id: config.publishFrameId,
+        stamp: { sec: 0, nsec: 0 }, // You might want to use a proper timestamp here
+      },
+      axes,
+      buttons,
+    });
+  }, [config.dataSource, config.publishFrameId, kbEnabled, trackedKeys, setJoy]);
+
+  // Advertise the topic to publish
+  useEffect(() => {
+    if (config.publishMode) {
+      setPubTopic(config.pubJoyTopic);
+      context.advertise?.(config.pubJoyTopic, "sensor_msgs/Joy");
+    } else if (pubTopic) {
+      context.unadvertise?.(pubTopic);
+      setPubTopic(undefined);
+    }
+  }, [config.pubJoyTopic, config.publishMode, context, pubTopic, setPubTopic]);
+
+  // Publish the joy message
+  useEffect(() => {
+    if (config.publishMode && pubTopic && pubTopic === config.pubJoyTopic && joy) {
+      context.publish?.(pubTopic, joy);
+    }
+  }, [context, config.pubJoyTopic, config.publishMode, joy, pubTopic]);
+
+  // Save state
+  useEffect(() => {
+    context.saveState(config);
+  }, [context, config]);
 }

@@ -6,7 +6,9 @@
         "gamepaddisconnected",
         "ipega",
         "kbmapping",
+        "nsec",
         "rostime",
-        "steamdeck"
+        "steamdeck",
+        "unadvertise"
     ]
 }

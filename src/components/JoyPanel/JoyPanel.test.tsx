@@ -1,4 +1,4 @@
-import { LayoutActions, PanelExtensionContext } from "@foxglove/extension";
+import { LayoutActions, PanelExtensionContext } from "@foxglove/extension";<AnimationPlaybackEvent
 import { render } from "@testing-library/react";
 
 import { JoyPanel } from "./JoyPanel";
