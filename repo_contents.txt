@@ -1,0 +1,2887 @@
+File: .devcontainer/Dockerfile
+----------------
+FROM mcr.microsoft.com/devcontainers/typescript-node:0-18
+
+# Copy package.json and package-lock.json (if available)
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Set the user
+USER node
+
+# Command to keep the container running
+CMD ["bash"]-e 
+
+File: .devcontainer/devcontainer.json
+----------------
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/docker-outside-of-docker-compose
+{
+	"name": "Foxglove Joystick Extension Dev Container",
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "app",
+	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+
+	// Use this environment variable if you need to bind mount your local source code into a new container.
+	"remoteEnv": {
+		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+	},
+    "customizations": {
+        "vscode": {
+            "extensions": [
+				"dbaeumer.vscode-eslint",
+				"esbenp.prettier-vscode",
+				"ms-typescript-eslint.vscode-typescript-eslint",
+				"foxglove.studio-extension-helpers",
+				"dbaeumer.vscode-eslint",
+				"esbenp.prettier-vscode",
+				"ms-vscode-remote.remote-containers",
+				"ms-azuretools.vscode-docker",
+				"streetsidesoftware.code-spell-checker",
+				"orta.vscode-jest",
+				"foxglove.vscode-foxglove-studio",
+				"SonarSource.sonarlint-vscode"
+			],
+            "settings": {
+                "git.useEditorAsCommitInput": false
+            }
+        }
+    },
+    "forwardPorts": [8080],
+	"features": {
+		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+		"ghcr.io/devcontainers/features/node:1": {},
+		"ghcr.io/devcontainers-contrib/features/jest:2": {},
+        "ghcr.io/devcontainers/features/git:1": {
+            "version": "latest"
+        }
+	},
+	"postCreateCommand": [
+		"echo 'Dev container is ready!'"
+	]
+}
+-e 
+
+File: .devcontainer/docker-compose.yml
+----------------
+version: '3'
+
+services:
+  app:
+    network_mode: host
+    build: 
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+
+    volumes:
+      # Forwards the local Docker socket to the container.
+      - /var/run/docker.sock:/var/run/docker-host.sock 
+      # Update this to wherever you want VS Code to mount the folder of your project
+      - ../..:/workspaces:cached
+      - ~/.gitconfig:/root/.gitconfig  # Mount the .gitconfig file
+      - ~/.ssh:/root/.ssh              # Mount the .ssh directory
+    # Overrides default command so things don't shut down after the process ends.
+    entrypoint: /usr/local/share/docker-init.sh
+    command: sleep infinity 
+
+    # Uncomment the next four lines if you will use a ptrace-based debuggers like C++, Go, and Rust.
+    # cap_add:
+    #  - SYS_PTRACE
+    # security_opt:
+    #   - seccomp:unconfined
+
+    # Use "forwardPorts" in **devcontainer.json** to forward an app port locally. 
+    # (Adding the "ports" property to this file will not forward from a Codespace.)
+-e 
+
+File: .eslintrc.yaml
+----------------
+root: true
+
+env:
+  browser: true
+  es2020: true
+  node: false
+
+ignorePatterns:
+  - dist
+
+plugins:
+  - jest
+
+extends:
+  - plugin:@foxglove/base
+  - plugin:@foxglove/react
+
+rules:
+  react-hooks/exhaustive-deps:
+    - error
+
+overrides:
+  - files: ["*.ts", "*.tsx"]
+    extends:
+      - plugin:@foxglove/typescript
+    parserOptions:
+      project: ./tsconfig.json
+-e 
+
+File: .github/dependabot.yml
+----------------
+# To get started with Dependabot version updates, you'll need to specify which
+# package ecosystems to update and where the package manifests are located.
+# Please see the documentation for more information:
+# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+# https://containers.dev/guide/dependabot
+
+version: 2
+updates:
+ - package-ecosystem: "devcontainers"
+   directory: "/"
+   schedule:
+     interval: weekly
+-e 
+
+File: .github/workflows/node.js.yml
+----------------
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: Node.js CI
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    - run: npm ci
+    - run: npm run build --if-present
+    - run: npm run package
+    - uses: actions/upload-artifact@v4
+      with:
+        name: joshnewans.joy-panel-${{ github.ref_name }}.foxe
+        path: joshnewans.joy-panel-${{ github.ref_name }}.foxe
+-e 
+
+File: .npmignore
+----------------
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Directory for instrumented libs generated by jscoverage/JSCover
+lib-cov
+
+# Coverage directory used by tools like istanbul
+coverage
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
+.grunt
+
+# Bower dependency directory (https://bower.io/)
+bower_components
+
+# node-waf configuration
+.lock-wscript
+
+# Compiled binary addons (https://nodejs.org/api/addons.html)
+build/Release
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env
+.env.test
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+
+# Next.js build output
+.next
+
+# Nuxt.js build / generate output
+.nuxt
+dist
+
+# Gatsby files
+.cache/
+# Comment in the public line in if your project uses Gatsby and *not* Next.js
+# https://nextjs.org/blog/next-9-1#public-directory-support
+# public
+
+# vuepress build output
+.vuepress/dist
+
+# Serverless directories
+.serverless/
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# Build output
+www/js/*
+
+# MacOS
+.DS_Store
+-e 
+
+File: .prettierrc.yaml
+----------------
+arrowParens: always
+printWidth: 100
+trailingComma: "all"
+tabWidth: 2
+semi: true
+-e 
+
+File: .vscode/extensions.json
+----------------
+{
+    "recommendations": [
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "ms-typescript-eslint.vscode-typescript-eslint",
+      "foxglove.studio-extension-helpers",
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "ms-vscode-remote.remote-containers",
+      "ms-azuretools.vscode-docker",
+      "streetsidesoftware.code-spell-checker",
+      "orta.vscode-jest",
+      "foxglove.vscode-foxglove-studio",
+      "sonarsource.sonarlint-vscode"
+    ]
+  }-e 
+
+File: .vscode/settings.json
+----------------
+{
+    "cSpell.words": [
+        "disp",
+        "fracwidth"
+    ]
+}-e 
+
+File: CHANGELOG.md
+----------------
+# joy-panel version history
+
+## 0.0.3
+
+- Rename to `joy-panel`
+
+## 0.0.2
+
+- Improve gamepad display
+- Improve mobile functionality
+- Add keyboard mode
+- Add interactive mode
+
+## 0.0.1
+
+- Initial release
+-e 
+
+File: README.md
+----------------
+# foxglove-joystick
+
+This is an extension for [Foxglove Studio](https://github.com/foxglove/studio) that adds functionality for working with joysticks. It receives joystick data from a variety of inputs, and offers various ways to display it.
+
+## Overview
+
+There are four main operating modes/input sources/use cases:
+
+| Mode | Functionality | Intended use case |
+| ----- | ------ | ------ |
+| Subscribe Mode | Subscribes to an existing ROS `Joy` topic | Monitoring a robot that is being teleoperated, or replaying a log and reviewing operator actions |
+| Gamepad Mode | Receives input from a locally-connected gamepad (and publishes it to a ROS `Joy` topic) | Live control of a robot using a gamepad connected to any Foxglove-supported device |
+| Keyboard Mode | Converts local keystrokes into `Joy` messages (for publishing) | Bench-testing a configuration that is primarily designed to use a gamepad but does not currently have one connected |
+| Interactive Display Mode | Makes the displayed indicators clickable/touchable (for publishing) | Controlling a robot from a touchscreen device |
+
+![Panel Overview Screenshot](https://github.com/joshnewans/foxglove-joystick/blob/main/docs/screenshot1.png?raw=true)
+
+## Installation
+
+### Foxglove Studio Extension Marketplace
+
+In the Foxglove Studio Desktop app, use the Extension Marketplace (Profile menu in top-right -> Extensions) to find and install the Joystick panel.
+
+### Releases
+
+Download the latest `.foxe` release [here](https://github.com/joshnewans/foxglove-joystick/releases/latest) and drag-and-drop it onto the window of Foxglove Studio (Desktop or Web).
+
+### Compile from source
+
+With Node and Foxglove installed
+
+- `npm install` to install dependencies
+- `npm run local-install` to build and install for a local copy of the Foxglove Studio Desktop App
+- `npm run package` to package it up into a `.foxe` file
+
+### Snap Users
+
+Right now it seems that this panel will **not** work with the `snap` version of Foxglove Studio. Snaps do not allow joystick input by default and I am looking into what is required to use it (possibly the Foxglove team enabling the `joystick` interface).
+
+### Steam Deck Users
+
+Please follow [this guide](docs/steamdeck.md).
+
+## Mapping
+
+Right now all "mapping" within the program is direct, but it is intended that there will be flexibility here. This is because different controllers (and in some cases the same controller on different platforms) will have the buttons/axes arranged in a different order.
+
+Some more complex examples of this are D-Pads (sometimes register as two axes, sometimes four buttons) and triggers (sometimes register as axes + buttons, sometimes buttons with a variable value, unsupported by `Joy`).
+
+Thus it is expected to eventually need the following:
+
+| Mapping | Purpose | Current implementation |
+| ------- | ------- | ---------------------- |
+| Gamepad (numerical) -> Joy (or Keyboard -> Joy) | Defines how key pressed are mapped to `Joy` values (e.g. gamepad button 3 maps to joy button 4). | Direct mapping |
+| Joy -> Gamepad/Layout (named) | Defines how `Joy` values map into the Layout (e.g. joy button 4 maps to layout button "L1"). | Built into layout JSON (separate in future) |
+
+Also note that the HTML gamepad API seems to have the axes reversed compared to what typically comes out of the `joy` drivers, so the panel flips those values back automatically.
+
+## Layouts
+
+Currently consist of a `.json` to determine button locations and an entry in `GamepadBackground.tsx` for the background. Intention is for this to be more configurable in future.
+
+## Planned functionality/improvements
+
+- **Source modes**
+  - [x] Source Mode 1 (Subscriber)
+  - [x] Source Mode 2 (Gamepad)
+    - [ ] Option for a custom mapping from gamepad to `Joy` (e.g. GP 6-> Joy 8)
+    - [ ] Dead-zones, inversion, scaling, etc.
+  - [x] Source Mode 3 (Keyboard)
+  - [x] Source Mode 4 (Interactive)
+- **Display modes**
+  - [x] Simple Auto-Generated Display
+    - [ ] Better identification of axes
+  - [x] Gamepad visual mimic
+    - [ ] Different options for the image
+    - [ ] Different options for mapping joy buttons to image buttons
+    - [x] Options for axes to be sticks, d-pads, triggers, or more
+    - [ ] General improved customisability
+
+## Contributions
+
+Thanks to [rgov](https://github.com/rgov) for creating [this repo](https://github.com/ARMADAMarineRobotics/studio-extension-gamepad) which I originally worked on this project from before rewriting it mostly from scratch (but have retained [useGamepads.ts](src/hooks/useGamepad.ts)).
+-e 
+
+File: docs/steamdeck.md
+----------------
+# Steam Deck Guide
+
+## Method 1 - Web Version
+First, get into the Desktop mode of your Steam Deck.
+
+1. Install Chrome through the normal "app store".
+2. Run `flatpak --user override --filesystem=/run/udev:ro com.google.Chrome`
+3. Add Chrome to your Steam Library by finding it in the applications menu, right-click, "Add to Steam"
+4. (Optional steps) Right-click the game in your library and select "Properties"
+    a. Rename to "Foxglove" or whatever you like (you should be able to add multiple "Chromes" and name them anything)
+    b. Set an icon to show in the sidebar game list
+    c. At the end of the "Launch Options", add the URL you want to go to between `"@@u"` and `"@@"`, e.g. `... "com.google.Chrome" "@@u" http://localhost:8080 "@@"`. You can play around with this URL to automatically select a particular connection too (try it in a regular browser first).
+    d. Also in the launch options, add `--kiosk` between `"com.google.Chrome"` and `"@@u"`
+    e. Fix the cover art
+        i. Click "Home" near the top-left of the library
+        ii. find Foxglove in the cover art list
+        iii. Right-click -> Manage -> Set the cover art (*no idea why you can't do this from the other "Manage" menu...*)
+
+5. Fix controller configuration
+    a. Get to the controller configuration either from the game page in the Desktop UI, or from within the normal SteamOS UI
+    b. Change the configuration to "Gamepad with Mouse Trackpad"
+    c. Tweak the settings to suit your usage
+
+*To Add*
+- Drag and drop to install extension
+- Self-hosted vs studio.foxglove.dev
+- Secure websocket settings
+
+
+## Method 2 - Desktop Add
+
+To do - this
+Snap may be the easiest to get installed, but the extension is currently broken under snap.-e 
+
+File: jest.config.js
+----------------
+module.exports = {
+  preset: 'ts-jest',
+  testEnvironment: 'jsdom',
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  transform: {
+    '^.+\\.(ts|tsx)$': 'ts-jest',
+  },
+  moduleNameMapper: {
+    '^lodash-es$': 'lodash',
+  },
+  setupFilesAfterEnv: ['@testing-library/jest-dom/extend-expect'],
+};-e 
+
+File: package.json
+----------------
+{
+  "name": "joy-panel",
+  "displayName": "Joystick Panel",
+  "description": "Foxglove panel extension for joystick/gamepad control.",
+  "publisher": "Josh Newans",
+  "homepage": "",
+  "version": "0.0.3",
+  "license": "MIT",
+  "main": "./dist/extension.js",
+  "keywords": [],
+  "scripts": {
+    "build": "foxglove-extension build",
+    "foxglove:prepublish": "foxglove-extension build --mode production",
+    "lint:ci": "eslint --report-unused-disable-directives .",
+    "lint": "eslint --report-unused-disable-directives --fix .",
+    "local-install": "foxglove-extension install",
+    "package": "foxglove-extension package",
+    "prepackage": "npm test",
+    "prebuild": "npm run lint && npm run test",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@foxglove/eslint-plugin": "1.0.1",
+    "@foxglove/extension": "latest",
+    "@foxglove/rostime": "^1.1.2",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^14.3.1",
+    "@testing-library/user-event": "^14.4.3",
+    "@types/jest": "^29.5.12",
+    "@types/react": "18.2.46",
+    "@types/react-dom": "18.2.18",
+    "@typescript-eslint/eslint-plugin": "6.17.0",
+    "@typescript-eslint/parser": "6.17.0",
+    "create-foxglove-extension": "0.8.6",
+    "eslint": "8.56.0",
+    "eslint-config-prettier": "8.10.0",
+    "eslint-plugin-es": "4.1.0",
+    "eslint-plugin-filenames": "1.3.2",
+    "eslint-plugin-import": "2.29.1",
+    "eslint-plugin-jest": "27.6.1",
+    "eslint-plugin-prettier": "5.1.2",
+    "eslint-plugin-react": "7.33.2",
+    "eslint-plugin-react-hooks": "4.6.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.5.0",
+    "prettier": "3.1.1",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "ts-jest": "^29.1.5",
+    "typescript": "5.3.3"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "^5.15.2",
+    "@svgr/webpack": "^8.1.0",
+    "@types/lodash-es": "^4.17.12",
+    "immer": "^10.0.3",
+    "lodash": "^4.17.21"
+  }
+}
+-e 
+
+File: src/components/GamepadView/GamepadBackground.tsx
+----------------
+export function GamepadBackground(props: { layoutName: string }): React.ReactElement {
+  if (props.layoutName === "steamdeck") {
+    return (
+      <>
+        <g
+          style={{
+            strokeWidth: 0.705556,
+            strokeDasharray: "none",
+          }}
+        >
+          <path
+            d="M192.505 205.066h-39.741c-24.718.674-29.139-3.937-34.296-8.314-3.102-4.143-8.148-4.234-9.004-34.819l-.064-49.72c.965-16.717 14.738-18.038 19.89-18.038l78.633-.086"
+            style={{
+              fill: "none",
+              stroke: "#cc6e00",
+              strokeWidth: 0.705556,
+              strokeLinecap: "butt",
+              strokeLinejoin: "miter",
+              strokeDasharray: "none",
+              strokeOpacity: 1,
+            }}
+            transform="matrix(2.6628 0 0 2.6628 -269.775 -142.393)"
+          />
+          <path
+            d="M109.98 132.22h10.804c2.896.022 3.546 2.43 3.476 3.476v21.488c.418 6.27 1.73 9.295 3.014 11.25l21.828 30.145c3.05 3.415 2.874 6.63 2.874 6.63"
+            style={{
+              fill: "none",
+              stroke: "#cc6e00",
+              strokeWidth: 0.705556,
+              strokeLinecap: "butt",
+              strokeLinejoin: "miter",
+              strokeDasharray: "none",
+              strokeOpacity: 1,
+            }}
+            transform="matrix(2.6628 0 0 2.6628 -269.775 -142.393)"
+          />
+          <path
+            d="M195.454 193.154H179.44a1.778 1.778 0 0 1-1.782-1.782v-85.19c0-.987.795-1.782 1.782-1.782h25.592"
+            style={{
+              fill: "none",
+              fillOpacity: 0.748547,
+              stroke: "#cc6e00",
+              strokeWidth: 0.705556,
+              strokeDasharray: "none",
+              stopColor: "#000",
+            }}
+            transform="matrix(2.6628 0 0 2.6628 -269.775 -142.393)"
+          />
+        </g>
+        <g
+          style={{
+            strokeWidth: 0.705556,
+            strokeDasharray: "none",
+          }}
+        >
+          <path
+            d="M203.406 205.066h-50.642c-24.718.674-29.139-3.937-34.296-8.314-3.102-4.143-8.148-4.234-9.004-34.819l-.064-49.72c.965-16.717 14.738-18.038 19.89-18.038l59.508-.086"
+            style={{
+              fill: "none",
+              stroke: "#cc6e00",
+              strokeWidth: 0.705556,
+              strokeLinecap: "butt",
+              strokeLinejoin: "miter",
+              strokeDasharray: "none",
+              strokeOpacity: 1,
+            }}
+            transform="matrix(-2.6628 0 0 2.6628 781.775 -142.377)"
+          />
+          <path
+            d="M109.98 132.22h10.804c2.896.022 3.546 2.43 3.476 3.476v21.488c.418 6.27 1.73 9.295 3.014 11.25l21.828 30.145c3.05 3.415 2.874 6.63 2.874 6.63"
+            style={{
+              fill: "none",
+              stroke: "#cc6e00",
+              strokeWidth: 0.705556,
+              strokeLinecap: "butt",
+              strokeLinejoin: "miter",
+              strokeDasharray: "none",
+              strokeOpacity: 1,
+            }}
+            transform="matrix(-2.6628 0 0 2.6628 781.775 -142.377)"
+          />
+          <path
+            d="M200.47 193.154H179.44a1.778 1.778 0 0 1-1.782-1.782v-85.19c0-.987.795-1.782 1.782-1.782h12.049"
+            style={{
+              fill: "none",
+              fillOpacity: 0.748547,
+              stroke: "#cc6e00",
+              strokeWidth: 0.705556,
+              strokeDasharray: "none",
+              stopColor: "#000",
+            }}
+            transform="matrix(-2.6628 0 0 2.6628 781.775 -142.377)"
+          />
+        </g>
+      </>
+    );
+  } else if (props.layoutName === "ipega-9083s") {
+    return (
+      <g>
+        <path
+          d="M44.454 149.03c4.606-6.466 59.613-35.602 74.977-33.851 0 0 17.394 1.4 22.214 15.9v210.996c0 12.686 8.424 13.672 8.424 13.672h25.962c.564 16.247-.802 28.816-5.974 31.97-3.755 4.231-31.522 7.68-31.522 7.68-12.352 6.516-18.75 24.166-43.868 25.436-31.417-7.425-59.494-56.25-67.955-136.403-2.468-107.943 13.433-130.714 17.742-135.4ZM465.592 149.03c-4.606-6.466-59.614-35.602-74.978-33.851 0 0-17.393 1.4-22.213 15.9v210.996c0 12.686-8.424 13.672-8.424 13.672h-25.963c-.563 16.247.803 28.816 5.975 31.97 3.755 4.231 31.522 7.68 31.522 7.68 12.352 6.516 18.75 24.166 43.868 25.436 31.416-7.425 59.493-56.25 67.955-136.403 2.468-107.943-13.433-130.714-17.742-135.4Z"
+          style={{
+            fill: "none",
+            stroke: "#cc6e00",
+            strokeWidth: 2,
+            strokeLinecap: "butt",
+            strokeLinejoin: "miter",
+            strokeDasharray: "none",
+            strokeOpacity: 1,
+          }}
+        />
+        <path
+          d="M141.848 207.744h225.876M141.848 291.673h225.876"
+          style={{
+            fill: "#cc6e00",
+            stroke: "#cc6e00",
+            strokeWidth: 2,
+            strokeLinecap: "butt",
+            strokeLinejoin: "miter",
+            strokeDasharray: "none",
+            strokeOpacity: 1,
+          }}
+        />
+      </g>
+    );
+  } else if (props.layoutName === "xbox") {
+    return (
+      <path
+        d="M74.705 416.566s-40.052-5.9-46.854-51.487C18.46 302.144 73.865 162.3 80.275 149.05c9.536-19.008 67.45-43.92 90.083-40.648 12.838 1.8 16.917 6.175 24.652 5.871 14.768-.58 112.998.29 125.07.451 2.968.04 5.656-3.175 23.236-6.173 16.686-2.845 74.582 17.973 88.338 40.23 11.257 27.112 63.578 168.922 52.145 215.318-5.762 47.37-46.812 52.599-46.812 52.599-24.918-9.45-59.72-76.089-86.417-86.895-3.267-7.526-183.136-6.451-187.835-1.112-31.506 12.8-56.12 72.854-88.03 87.874z"
+        style={{
+          fill: "none",
+          stroke: "#ff7f2a",
+          strokeWidth: 5.66929134,
+          strokeLinecap: "butt",
+          strokeLinejoin: "miter",
+          strokeOpacity: 1,
+          strokeDasharray: "none",
+        }}
+      />
+    );
+  } else if (props.layoutName === "cheapo") {
+    return (
+      <path
+        d="m479.773 341.108-7.3-107.083c-.037 0-.037 0-.061-.013-.22-9.51-2.222-18.567-5.75-26.844v-.012c-4.248-13.477-21.18-31.813-25.171-34.755-4.005-2.93-4.627-4.712-6.129-12.976-2.856-17.14-7.385-27.455-13.16-27.552 0-10.462-22.57-11.048-29.407-10.962-6.873-.074-29.432.5-29.432 10.962-5.774.097-10.315 10.413-13.135 27.552-.452 2.43-.818 4.26-1.221 5.762H162.648c-.403-1.502-.769-3.333-1.196-5.762-2.857-17.14-7.373-27.455-13.172-27.552 0-10.462-22.572-11.048-29.408-10.962-6.86-.074-29.42.5-29.42 10.962-5.786.097-10.315 10.413-13.147 27.552-1.514 8.264-2.136 10.047-6.128 12.976-4.004 2.942-20.948 21.278-25.184 34.755v.012c-3.528 8.277-5.542 17.335-5.774 26.844 0 .013-.025.013-.037.013L31.87 341.108c-.037.867-.073 1.77-.073 2.625 0 26.16 21.192 47.365 47.352 47.365 16.871 0 31.69-8.838 40.065-22.12l.012.024 25.88-38.343c8.118 11.707 21.668 19.36 37.013 19.36 21.119 0 38.82-14.502 43.69-34.131h60.024c4.871 19.617 22.596 34.132 43.679 34.132 15.369 0 28.907-7.654 37.013-19.361l25.892 38.343.036-.024c8.387 13.294 23.17 22.12 40.04 22.12 26.161 0 47.366-21.205 47.366-47.365.012-.867-.037-1.758-.086-2.625z"
+        style={{
+          fill: "none",
+          stroke: "#cc6e00",
+          strokeWidth: 5,
+        }}
+      />
+    );
+  } else {
+    return <g></g>;
+  }
+}
+-e 
+
+File: src/components/GamepadView/GamepadView.tsx
+----------------
+import { useCallback, useEffect, useState } from "react";
+
+import { GamepadBackground } from "./GamepadBackground";
+import cheapo from "../../mappings/cheapo.json";
+import ipega9083s from "../../mappings/ipega-9083s.json";
+import steamdeck from "../../mappings/steamdeck.json";
+import xbox from "../../mappings/xbox.json";
+import { Joy, ButtonConfig, BarConfig, StickConfig, DPadConfig, DisplayMapping } from "../../types";
+
+const colStroke = "#ddd";
+const colPrim = "blue";
+const colSec = "cornflowerblue";
+const colAlt = "red";
+
+interface Interaction {
+  pointerId: number;
+  buttonIdx: number;
+  axis1Idx: number;
+  axis2Idx: number;
+  buttonVal: number;
+  axis1Val: number;
+  axis2Val: number;
+}
+
+enum PointerEventType {
+  Down,
+  Move,
+  Up,
+}
+
+function generateButton(
+  value: number,
+  x: number,
+  y: number,
+  text: string,
+  radius: number,
+  downCb: (e: React.PointerEvent) => void,
+  upCb: (e: React.PointerEvent) => void,
+) {
+  return (
+    <>
+      <circle
+        cx={x}
+        cy={y}
+        fill={value > 0 ? colAlt : colPrim}
+        r={radius}
+        stroke={colStroke}
+        strokeWidth={2}
+        onPointerDown={downCb}
+        onPointerUp={upCb}
+      />
+      <text
+        textAnchor="middle"
+        x={x}
+        y={y}
+        fill="white"
+        dominantBaseline="middle"
+        pointerEvents="none"
+      >
+        {text}
+      </text>
+    </>
+  );
+}
+
+function generateBar(value: number, x: number, y: number, rot: number) {
+  const width = 80;
+  const height = 10;
+  const fracwidth = ((-value + 1) * width) / 2;
+
+  const transform =
+    "translate(" + x.toString() + "," + y.toString() + ") rotate(" + rot.toString() + ")";
+  return (
+    <>
+      <rect
+        width={fracwidth}
+        height={height}
+        x={-width / 2}
+        y={-height / 2}
+        fill={colPrim}
+        transform={transform}
+      />
+
+      <rect
+        width={width}
+        height={height}
+        x={-width / 2}
+        y={-height / 2}
+        fill="transparent"
+        stroke={colStroke}
+        transform={transform}
+      />
+    </>
+  );
+}
+
+function generateStick(
+  valueX: number,
+  valueY: number,
+  valueButton: number,
+  x: number,
+  y: number,
+  radius: number,
+  downCb: (e: React.PointerEvent) => void,
+  moveCb: (e: React.PointerEvent) => void,
+  upCb: (e: React.PointerEvent) => void,
+) {
+  const offX = -valueX * radius;
+  const offY = -valueY * radius;
+
+  return (
+    <>
+      <circle
+        cx={x}
+        cy={y}
+        fill={colPrim}
+        r={radius}
+        stroke={colStroke}
+        strokeWidth={2}
+        onPointerDown={downCb}
+        onPointerMove={moveCb}
+        onPointerUp={upCb}
+      />
+      <circle
+        cx={x + offX}
+        cy={y + offY}
+        fill={valueButton > 0 ? colAlt : colSec}
+        r={radius * 0.5}
+        stroke="none"
+        strokeWidth={2}
+        pointerEvents="none"
+      />
+    </>
+  );
+}
+
+function generateDPad(valueX: number, valueY: number, x: number, y: number, radius: number) {
+  const transform = "translate(" + x.toString() + "," + y.toString() + ")";
+
+  return (
+    <>
+      <circle cx={x} cy={y} fill="none" r={radius} stroke={colStroke} strokeWidth={2} />
+      <polygon
+        points="10,15 0,25 -10,15"
+        fill={valueY < 0 ? colAlt : colPrim}
+        stroke={colStroke}
+        strokeWidth={2}
+        transform={transform}
+      />
+      <polygon
+        points="10,-15 0,-25 -10,-15"
+        fill={valueY > 0 ? colAlt : colPrim}
+        stroke={colStroke}
+        strokeWidth={2}
+        transform={transform}
+      />
+      <polygon
+        points="15,10 25,0 15,-10"
+        fill={valueX < 0 ? colAlt : colPrim}
+        stroke={colStroke}
+        strokeWidth={2}
+        transform={transform}
+      />
+      <polygon
+        points="-15,10 -25,0 -15,-10"
+        fill={valueX > 0 ? colAlt : colPrim}
+        stroke={colStroke}
+        strokeWidth={2}
+        transform={transform}
+      />
+    </>
+  );
+}
+
+export function GamepadView(props: {
+  joy: Joy | undefined;
+  cbInteractChange: (joy: Joy) => void;
+  layoutName: string;
+}): React.ReactElement {
+  const { joy, cbInteractChange, layoutName } = props;
+  const dispItems = [];
+
+  const [numButtons, setNumButtons] = useState<number>(0);
+  const [numAxes, setNumAxes] = useState<number>(0);
+  const [interactions, setInteractions] = useState<Interaction[]>([]);
+  const [displayMapping, setDisplayMapping] = useState<DisplayMapping>([]);
+
+  useEffect(() => {
+    if (layoutName === "steamdeck") {
+      setDisplayMapping(steamdeck);
+    } else if (layoutName === "ipega-9083s") {
+      setDisplayMapping(ipega9083s);
+    } else if (layoutName === "xbox") {
+      setDisplayMapping(xbox);
+    } else if (layoutName === "cheapo") {
+      setDisplayMapping(cheapo);
+    } else {
+      setDisplayMapping([]);
+    }
+  }, [layoutName]);
+
+  // Prevent accidentally panning/zooming when touching the image
+  const preventPan = useCallback((event: Event): void => {
+    event.preventDefault();
+  }, []);
+
+  useEffect(() => {
+    const elements = document.getElementsByClassName("preventPan");
+    Array.prototype.forEach.call(elements, (el: HTMLElement) => {
+      el.addEventListener("touchstart", preventPan, { passive: false });
+      el.addEventListener("touchend", preventPan, { passive: false });
+      el.addEventListener("touchmove", preventPan, { passive: false });
+      el.addEventListener("touchcancel", preventPan, { passive: false });
+    });
+
+    return () => {
+      Array.prototype.forEach.call(elements, (el: HTMLElement) => {
+        el.removeEventListener("touchstart", preventPan);
+        el.removeEventListener("touchend", preventPan);
+        el.removeEventListener("touchmove", preventPan);
+        el.removeEventListener("touchcancel", preventPan);
+      });
+    };
+  }, [preventPan]);
+
+  useEffect(() => {
+    if (displayMapping.length === 0) {
+      setNumButtons(0);
+      setNumAxes(0);
+    } else {
+      setNumButtons(
+        Math.max(
+          ...displayMapping.map((item) =>
+            item.type === "button" ? (item as ButtonConfig).button : -1,
+          ),
+        ) + 1,
+      );
+      setNumAxes(
+        displayMapping.reduce((tempMax, current) => {
+          if (current.type === "stick") {
+            const mapping = current as StickConfig;
+            return Math.max(tempMax, mapping.axisX, mapping.axisY);
+          } else {
+            return tempMax;
+          }
+        }, -1) + 1,
+      );
+    }
+  }, [displayMapping]);
+
+  useEffect(() => {
+    const tmpJoy = {
+      header: {
+        frame_id: "",
+        stamp: { sec: 0, nsec: 0 },
+      },
+      buttons: Array<number>(numButtons).fill(0),
+      axes: Array<number>(numAxes).fill(0),
+    } as Joy;
+
+    interactions.forEach((inter) => {
+      if (inter.buttonIdx >= 0 && inter.buttonIdx < numButtons) {
+        tmpJoy.buttons[inter.buttonIdx] = inter.buttonVal;
+      }
+
+      if (inter.axis1Idx >= 0 && inter.axis1Idx < numAxes) {
+        tmpJoy.axes[inter.axis1Idx] = inter.axis1Val;
+      }
+
+      if (inter.axis2Idx >= 0 && inter.axis2Idx < numAxes) {
+        tmpJoy.axes[inter.axis2Idx] = inter.axis2Val;
+      }
+    });
+
+    cbInteractChange(tmpJoy);
+  }, [numButtons, numAxes, interactions, cbInteractChange]);
+
+  const buttonCb = (idx: number, e: React.PointerEvent, eventType: PointerEventType) => {
+    switch (eventType) {
+      case PointerEventType.Down: {
+        // Add it to the list of tracked interactions
+        e.currentTarget.setPointerCapture(e.pointerId);
+        setInteractions([
+          ...interactions,
+          {
+            pointerId: e.pointerId,
+            buttonIdx: idx,
+            buttonVal: 1,
+            axis1Idx: -1,
+            axis1Val: -1,
+            axis2Idx: -1,
+            axis2Val: -1,
+          },
+        ]);
+        break;
+      }
+      case PointerEventType.Move: {
+        // Don't really need this for buttons
+        break;
+      }
+      case PointerEventType.Up: {
+        // Remove from the list
+        setInteractions(interactions.filter((i) => i.pointerId !== e.pointerId));
+        break;
+      }
+    }
+  };
+
+  const axisCb = (
+    idxX: number,
+    idxY: number,
+    e: React.PointerEvent,
+    eventType: PointerEventType,
+  ) => {
+    const dim = e.currentTarget.getBoundingClientRect();
+    const x = -(e.clientX - (dim.left + dim.right) / 2) / 30;
+    const y = -(e.clientY - (dim.top + dim.bottom) / 2) / 30;
+    const r = Math.min(Math.sqrt(x * x + y * y), 1);
+    const ang = Math.atan2(y, x);
+    const xa = r * Math.cos(ang);
+    const ya = r * Math.sin(ang);
+
+    switch (eventType) {
+      case PointerEventType.Down: {
+        // Add it to the list of tracked interactions
+        e.currentTarget.setPointerCapture(e.pointerId);
+        setInteractions([
+          ...interactions,
+          {
+            pointerId: e.pointerId,
+            buttonIdx: -1,
+            buttonVal: -1,
+            axis1Idx: idxX,
+            axis1Val: xa,
+            axis2Idx: idxY,
+            axis2Val: ya,
+          },
+        ]);
+        break;
+      }
+      case PointerEventType.Move: {
+        const updatedInteractions = interactions.map((v) => {
+          if (v.pointerId === e.pointerId) {
+            return {
+              pointerId: e.pointerId,
+              buttonIdx: -1,
+              buttonVal: -1,
+              axis1Idx: idxX,
+              axis1Val: xa,
+              axis2Idx: idxY,
+              axis2Val: ya,
+            };
+          } else {
+            return v;
+          }
+        });
+        setInteractions(updatedInteractions);
+        break;
+      }
+      case PointerEventType.Up: {
+        // Remove from the list
+        setInteractions(interactions.filter((i) => i.pointerId !== e.pointerId));
+        break;
+      }
+    }
+  };
+
+  for (const mappingA of displayMapping) {
+    if (mappingA.type === "button") {
+      const mapping = mappingA as ButtonConfig;
+      const index = mapping.button;
+      const text = mapping.text;
+      const x = mapping.x;
+      const y = mapping.y;
+      const radius = 18;
+      const buttonVal = joy?.buttons[index] ?? 0;
+
+      dispItems.push(
+        generateButton(
+          buttonVal,
+          x,
+          y,
+          text,
+          radius,
+          (e) => {
+            buttonCb(index, e, PointerEventType.Down);
+          },
+          (e) => {
+            buttonCb(index, e, PointerEventType.Up);
+          },
+        ),
+      );
+    } else if (mappingA.type === "bar") {
+      const mapping = mappingA as BarConfig;
+      const axis = mapping.axis;
+      const x = mapping.x;
+      const y = mapping.y;
+      const rot = mapping.rot;
+      const axVal = joy?.axes[axis] ?? 0;
+      dispItems.push(generateBar(axVal, x, y, rot));
+    } else if (mappingA.type === "stick") {
+      const mapping = mappingA as StickConfig;
+      const axisX = mapping.axisX;
+      const axisY = mapping.axisY;
+      const button = mapping.button;
+      const x = mapping.x;
+      const y = mapping.y;
+      const axXVal = joy?.axes[axisX] ?? 0;
+      const axYVal = joy?.axes[axisY] ?? 0;
+      const buttonVal = joy?.buttons[button] ?? 0;
+      dispItems.push(
+        generateStick(
+          axXVal,
+          axYVal,
+          buttonVal,
+          x,
+          y,
+          30,
+          (e) => {
+            axisCb(axisX, axisY, e, PointerEventType.Down);
+          },
+          (e) => {
+            axisCb(axisX, axisY, e, PointerEventType.Move);
+          },
+          (e) => {
+            axisCb(axisX, axisY, e, PointerEventType.Up);
+          },
+        ),
+      );
+    } else if (mappingA.type === "d-pad") {
+      const mapping = mappingA as DPadConfig;
+      const axisX = mapping.axisX;
+      const axisY = mapping.axisY;
+      const x = mapping.x;
+      const y = mapping.y;
+      const axXVal = joy?.axes[axisX] ?? 0;
+      const axYVal = joy?.axes[axisY] ?? 0;
+      dispItems.push(generateDPad(axXVal, axYVal, x, y, 30));
+    }
+  }
+
+  return (
+    <div>
+      {displayMapping.length === 0 ? <h2>No mapping!</h2> : null}
+      <svg viewBox="0 0 512 512" className="preventPan">
+        <GamepadBackground layoutName={layoutName} />
+        {dispItems}
+      </svg>
+    </div>
+  );
+}
+-e 
+
+File: src/components/GamepadView/index.ts
+----------------
+-e 
+
+File: src/components/JoyPanel/JoyPanel.test.tsx
+----------------
+import { LayoutActions, PanelExtensionContext } from "@foxglove/extension";
+import { render } from "@testing-library/react";
+
+import { JoyPanel } from "./JoyPanel";
+
+const mockDiv: HTMLDivElement = document.createElement("div");
+
+// Mock the PanelExtensionContext
+const mockContext: PanelExtensionContext = {
+  subscribe: jest.fn(),
+  watch: jest.fn(),
+  unsubscribeAll: jest.fn(),
+  saveState: jest.fn(),
+  initialState: {
+    subJoyTopic: "/joy",
+    pubJoyTopic: "/joy",
+    publishMode: false,
+    publishFrameId: "",
+    dataSource: "sub-joy-topic",
+    displayMode: "auto",
+    debugGamepad: false,
+    layoutName: "steamdeck",
+    mapping_name: "TODO",
+    gamepadId: 0,
+    panelElement: "MockPanelElement",
+    layout: "MockLayout",
+    sharedPanelState: "MockSharedPanelState",
+  },
+  panelElement: mockDiv,
+  layout: {} as LayoutActions, // Provide a valid value for the layout property
+  setParameter: jest.fn(),
+  setSharedPanelState: jest.fn(),
+
+  setVariable: jest.fn(),
+  setPreviewTime: jest.fn(),
+  subscribeAppSettings: jest.fn(),
+  updatePanelSettingsEditor: jest.fn(),
+  setDefaultPanelTitle: jest.fn(),
+};
+
+describe("JoyPanel", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("renders without crashing", () => {
+    render(<JoyPanel context={mockContext} />);
+  });
+
+  it('subscribes to the correct topic when dataSource is "sub-joy-topic"', () => {
+    render(<JoyPanel context={mockContext} />);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(mockContext.subscribe).toHaveBeenCalledWith([{ topic: "/joy" }]);
+  });
+});
+-e 
+
+File: src/components/JoyPanel/JoyPanel.tsx
+----------------
+import {
+  Immutable,
+  MessageEvent,
+  PanelExtensionContext,
+  SettingsTreeAction,
+  Topic,
+} from "@foxglove/extension";
+import { fromDate } from "@foxglove/rostime";
+import { FormGroup, FormControlLabel, Switch } from "@mui/material";
+import { useEffect, useLayoutEffect, useState, useCallback } from "react";
+import ReactDOM from "react-dom";
+
+import { Config, createDefaultConfig, createKeyboardMapping } from "../../config";
+import { buildSettingsTree, settingsActionReducer } from "../../config/panelSettings";
+import { useGamepad } from "../../hooks/useGamepad";
+import { Joy, KbMap } from "../../types";
+import { GamepadView } from "../GamepadView/GamepadView";
+import { SimpleButtonView } from "../SimpleButtonView";
+
+export function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX.Element {
+  const [topics, setTopics] = useState<undefined | Immutable<Topic[]>>();
+  const [messages, setMessages] = useState<undefined | Immutable<MessageEvent[]>>();
+  const [joy, setJoy] = useState<Joy | undefined>();
+  const [pubTopic, setPubTopic] = useState<string | undefined>();
+  const [kbEnabled, setKbEnabled] = useState<boolean>(true);
+  const [trackedKeys, setTrackedKeys] = useState<Map<string, KbMap> | undefined>(() =>
+    createKeyboardMapping(),
+  );
+
+  const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
+
+  const [config, setConfig] = useState<Config>(() => createDefaultConfig(context));
+
+  const settingsActionHandler = useCallback(
+    (action: SettingsTreeAction) => {
+      setConfig((prevConfig) => settingsActionReducer(prevConfig, action));
+    },
+    [setConfig],
+  );
+
+  // Register the settings tree
+  useEffect(() => {
+    context.updatePanelSettingsEditor({
+      actionHandler: settingsActionHandler,
+      nodes: buildSettingsTree(config, topics),
+    });
+  }, [config, context, settingsActionHandler, topics]);
+
+  // We use a layout effect to setup render handling for our panel. We also setup some topic subscriptions.
+  useLayoutEffect(() => {
+    context.onRender = (renderState, done) => {
+      setRenderDone(() => done);
+      setTopics(renderState.topics);
+      setMessages(renderState.currentFrame);
+    };
+
+    context.watch("topics");
+    context.watch("currentFrame");
+  }, [context]);
+
+  // Or subscribe to the relevant topic when in a recorded session
+  useEffect(() => {
+    if (config.dataSource === "sub-joy-topic") {
+      context.subscribe([{ topic: config.subJoyTopic }]);
+    } else {
+      context.unsubscribeAll();
+    }
+  }, [config.subJoyTopic, context, config.dataSource]);
+
+  // If subscribing
+  useEffect(() => {
+    const latestJoy = messages?.[messages.length - 1]?.message as Joy | undefined;
+    if (latestJoy) {
+      console.log("Joy message received, updating...", latestJoy);
+      const tmpMsg = {
+        header: {
+          stamp: latestJoy.header.stamp,
+          frame_id: config.publishFrameId,
+        },
+        axes: Array.from(latestJoy.axes),
+        buttons: Array.from(latestJoy.buttons),
+      };
+      setJoy(tmpMsg);
+    }
+  }, [messages, config.publishFrameId]);
+
+  useGamepad({
+    didConnect: useCallback((gp: Gamepad) => {
+      setConfig((prevConfig: Config) => {
+        return {
+          ...prevConfig,
+          options: {
+            ...prevConfig.options,
+            availableControllers: prevConfig.options.availableControllers.concat([gp]),
+          },
+        };
+      });
+      console.log("Gamepad " + gp.index + " connected!");
+    }, []),
+
+    didDisconnect: useCallback((gp: Gamepad) => {
+      setConfig((prevConfig: Config) => {
+        return {
+          ...prevConfig,
+          options: {
+            ...prevConfig.options,
+            availableControllers: prevConfig.options.availableControllers.filter(
+              (c) => c.id !== gp.id,
+            ),
+          },
+        };
+      });
+      console.log("Gamepad " + gp.index + " disconnected!");
+    }, []),
+
+    didUpdate: useCallback(
+      (gp: Gamepad) => {
+        if (config.dataSource !== "gamepad") {
+          return;
+        }
+
+        if (config.gamepadId !== gp.index) {
+          return;
+        }
+
+        console.log("Gamepad " + gp.index + " " + config.layoutName + " updating!");
+        if (config.layoutName === "xbox") {
+          const triggerLeftAxis: number = gp.buttons[6]?.value ?? 0;
+          const triggerRightAxis = gp.buttons[7]?.value ?? 0;
+
+          const tmpJoy = {
+            header: {
+              frame_id: config.publishFrameId,
+              stamp: fromDate(new Date()),
+            },
+            axes: gp.axes.map((axis) => -axis).concat([triggerLeftAxis, triggerRightAxis]),
+            buttons: gp.buttons.map((button, index) =>
+              index === 7 || index === 6 ? button.value : button.pressed ? 1 : 0,
+            ),
+          } as Joy;
+          console.log("Xbox Joy message updated", tmpJoy);
+          setJoy(tmpJoy);
+        } else {
+          const tmpJoy = {
+            header: {
+              frame_id: config.publishFrameId,
+              stamp: fromDate(new Date()),
+            },
+            axes: gp.axes.map((axis) => -axis),
+            buttons: gp.buttons.map((button) => (button.pressed ? 1 : 0)),
+          } as Joy;
+          setJoy(tmpJoy);
+        }
+      },
+      [config.dataSource, config.gamepadId, config.publishFrameId, config.layoutName],
+    ),
+  });
+
+  // Keyboard mode
+
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    setTrackedKeys((oldTrackedKeys) => {
+      if (oldTrackedKeys?.has(event.key) ?? false) {
+        const newKeys = new Map(oldTrackedKeys);
+        const k = newKeys.get(event.key);
+        if (k != undefined) {
+          k.value = 1;
+        }
+        return newKeys;
+      }
+      return oldTrackedKeys;
+    });
+  }, []);
+
+  const handleKeyUp = useCallback((event: KeyboardEvent) => {
+    setTrackedKeys((oldTrackedKeys) => {
+      const newKeys = new Map(oldTrackedKeys);
+      const k = newKeys.get(event.key);
+      if (k) {
+        k.value = 0;
+      }
+      return newKeys;
+    });
+  }, []);
+
+  // Key down Listener
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleKeyDown]);
+
+  // Key up Listener
+  useEffect(() => {
+    document.addEventListener("keyup", handleKeyUp);
+    return () => {
+      document.removeEventListener("keyup", handleKeyUp);
+    };
+  }, [handleKeyUp]);
+
+  // Generate Joy from Keys
+  useEffect(() => {
+    if (config.dataSource !== "keyboard") {
+      return;
+    }
+    if (!kbEnabled) {
+      return;
+    }
+
+    const axes: number[] = [];
+    const buttons: number[] = [];
+
+    trackedKeys?.forEach((value) => {
+      if (value.button >= 0) {
+        while (buttons.length <= value.button) {
+          buttons.push(0);
+        }
+        buttons[value.button] = value.value;
+      } else if (value.axis >= 0) {
+        while (axes.length <= value.axis) {
+          axes.push(0);
+        }
+        axes[value.axis] += (value.direction > 0 ? 1 : -1) * value.value;
+      }
+    });
+
+    const tmpJoy = {
+      header: {
+        frame_id: config.publishFrameId,
+        stamp: fromDate(new Date()),
+      },
+      axes,
+      buttons,
+    } as Joy;
+
+    setJoy(tmpJoy);
+  }, [config.dataSource, trackedKeys, config.publishFrameId, kbEnabled]);
+
+  // Advertise the topic to publish
+  useEffect(() => {
+    if (config.publishMode) {
+      setPubTopic((oldTopic) => {
+        if (config.publishMode) {
+          if (oldTopic) {
+            context.unadvertise?.(oldTopic);
+          }
+          context.advertise?.(config.pubJoyTopic, "sensor_msgs/Joy");
+          return config.pubJoyTopic;
+        } else {
+          if (oldTopic) {
+            context.unadvertise?.(oldTopic);
+          }
+          return "";
+        }
+      });
+    }
+  }, [config.pubJoyTopic, config.publishMode, context]);
+
+  // Publish the joy message
+  useEffect(() => {
+    if (!config.publishMode) {
+      return;
+    }
+
+    if (pubTopic && pubTopic === config.pubJoyTopic) {
+      context.publish?.(pubTopic, joy);
+    }
+  }, [context, config.pubJoyTopic, config.publishMode, joy, pubTopic]);
+
+  // Invoke the done callback once the render is complete
+  useEffect(() => {
+    renderDone?.();
+  }, [renderDone]);
+
+  const handleKbSwitch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setKbEnabled(event.target.checked);
+  };
+
+  const interactiveCb = useCallback(
+    (interactiveJoy: Joy) => {
+      if (config.dataSource !== "interactive") {
+        return;
+      }
+      const tmpJoy = {
+        header: {
+          frame_id: config.publishFrameId,
+          stamp: fromDate(new Date()),
+        },
+        axes: interactiveJoy.axes,
+        buttons: interactiveJoy.buttons,
+      } as Joy;
+
+      setJoy(tmpJoy);
+    },
+    [config.publishFrameId, config.dataSource, setJoy],
+  );
+
+  useEffect(() => {
+    context.saveState(config);
+  }, [context, config]);
+
+  return (
+    <div>
+      {config.dataSource === "keyboard" ? (
+        <FormGroup>
+          <FormControlLabel
+            control={<Switch checked={kbEnabled} onChange={handleKbSwitch} />}
+            label="Enable Keyboard"
+          />
+        </FormGroup>
+      ) : null}
+      {config.displayMode === "auto" ? <SimpleButtonView joy={joy} /> : null}
+      {config.displayMode === "custom" ? (
+        <GamepadView joy={joy} cbInteractChange={interactiveCb} layoutName={config.layoutName} />
+      ) : null}
+    </div>
+  );
+}
+export function initJoyPanel(context: PanelExtensionContext): () => void {
+  // eslint-disable-next-line react/no-deprecated
+  ReactDOM.render(<JoyPanel context={context} />, context.panelElement);
+
+  // Return a function to run when the panel is removed
+  return () => {
+    // eslint-disable-next-line react/no-deprecated
+    ReactDOM.unmountComponentAtNode(context.panelElement);
+  };
+}
+-e 
+
+File: src/components/JoyPanel/index.ts
+----------------
+export { JoyPanel, initJoyPanel } from "./JoyPanel";
+-e 
+
+File: src/components/SimpleButtonView/SimpleButtonView.tsx
+----------------
+/* eslint-disable react/jsx-key */
+import { Button, LinearProgress } from "@mui/material";
+
+import { Joy } from "../../types";
+
+function getButtonColor(value: number): string {
+  // Convert value to a hue between 120 (green) and 0 (red)
+  const hue = 120 - value * 120;
+  return `hsl(${hue}, 100%, 50%)`;
+}
+
+export function SimpleButtonView(props: { joy: Joy | undefined }): JSX.Element {
+  const buttons = props.joy
+    ? props.joy.buttons.map((item: number, index: number) => (
+        <Button
+          variant={item > 0 ? "contained" : "outlined"}
+          size="large"
+          style={{ backgroundColor: getButtonColor(item) }}
+        >
+          {index} ({item})
+        </Button>
+      ))
+    : [];
+
+  const axes = props.joy
+    ? props.joy.axes.map((item: number, index: number) => (
+        <LinearProgress
+          key={index}
+          variant="determinate"
+          value={item * 50 + 50}
+          sx={{ transition: "none" }}
+        />
+      ))
+    : [];
+
+  return (
+    <div>
+      {props.joy ? null : "Waiting for first data..."}
+      {buttons}
+      {axes}
+    </div>
+  );
+}
+-e 
+
+File: src/components/SimpleButtonView/index.ts
+----------------
+export { SimpleButtonView } from "./SimpleButtonView";
+-e 
+
+File: src/config/defaultConfig.test.ts
+----------------
+import { PanelExtensionContext } from "@foxglove/extension";
+
+import { createDefaultConfig, createKeyboardMapping } from "./defaultConfig";
+
+describe("createDefaultConfig", () => {
+  it("creates default config with initial state", () => {
+    const mockContext = {
+      initialState: {
+        subJoyTopic: "/custom_joy",
+        publishMode: true,
+      },
+    } as unknown as PanelExtensionContext;
+
+    const config = createDefaultConfig(mockContext);
+
+    expect(config.subJoyTopic).toBe("/custom_joy");
+    expect(config.publishMode).toBe(true);
+    expect(config.pubJoyTopic).toBe("/joy");
+    expect(config.dataSource).toBe("sub-joy-topic");
+  });
+
+  it("creates default config without initial state", () => {
+    const mockContext = {
+      initialState: {},
+    } as unknown as PanelExtensionContext;
+
+    const config = createDefaultConfig(mockContext);
+
+    expect(config.subJoyTopic).toBe("/joy");
+    expect(config.publishMode).toBe(false);
+    expect(config.pubJoyTopic).toBe("/joy");
+    expect(config.dataSource).toBe("sub-joy-topic");
+  });
+});
+
+describe("createKeyboardMapping", () => {
+  it("creates keyboard mapping with correct structure", () => {
+    const mapping = createKeyboardMapping();
+
+    expect(mapping.get("w")).toEqual({
+      axis: 1,
+      direction: 1,
+      button: -1,
+      value: 0,
+    });
+
+    expect(mapping.get("a")).toEqual({
+      axis: 0,
+      direction: 1,
+      button: -1,
+      value: 0,
+    });
+
+    expect(mapping.get(" ")).toEqual({
+      button: 6,
+      axis: -1,
+      direction: 0,
+      value: 0,
+    });
+  });
+});
+-e 
+
+File: src/config/defaultConfig.ts
+----------------
+import { PanelExtensionContext } from "@foxglove/extension";
+
+import { Config } from "./types";
+import { kbmapping1 } from "../mappings";
+import { KbMap } from "../types";
+
+export const createDefaultConfig = (context: PanelExtensionContext): Config => {
+  const partialConfig = context.initialState as Partial<Config>;
+
+  return {
+    subJoyTopic: partialConfig.subJoyTopic ?? "/joy",
+    pubJoyTopic: partialConfig.pubJoyTopic ?? "/joy",
+    publishMode: partialConfig.publishMode ?? false,
+    publishFrameId: partialConfig.publishFrameId ?? "",
+    dataSource: partialConfig.dataSource ?? "sub-joy-topic",
+    displayMode: partialConfig.displayMode ?? "auto",
+    debugGamepad: partialConfig.debugGamepad ?? false,
+    layoutName: partialConfig.layoutName ?? "steamdeck",
+    mapping_name: partialConfig.mapping_name ?? "TODO",
+    gamepadId: partialConfig.gamepadId ?? 0,
+    options: {
+      availableControllers: [],
+    },
+  };
+};
+
+export const createKeyboardMapping = (): Map<string, KbMap> => {
+  const keyMap = new Map<string, KbMap>();
+
+  for (const [key, value] of Object.entries(kbmapping1)) {
+    const k: KbMap = {
+      button: value.button,
+      axis: value.axis,
+      direction: value.direction === "+" ? 1 : 0,
+      value: 0,
+    };
+    keyMap.set(key, k);
+  }
+  return keyMap;
+};
+-e 
+
+File: src/config/index.ts
+----------------
+export { settingsActionReducer, buildSettingsTree } from "./panelSettings";
+export { createDefaultConfig, createKeyboardMapping } from "./defaultConfig";
+export type { Config, Options } from "./types";
+-e 
+
+File: src/config/panelSettings.test.ts
+----------------
+import { settingsActionReducer, buildSettingsTree } from "./panelSettings";
+import { Config } from "./types";
+
+describe("settingsActionReducer", () => {
+  it("updates config with new values", () => {
+    const initialConfig: Config = {
+      dataSource: "gamepad",
+      subJoyTopic: "/joy",
+      gamepadId: 0,
+      publishMode: false,
+      pubJoyTopic: "/joy",
+      publishFrameId: "",
+      displayMode: "auto",
+      debugGamepad: false,
+      layoutName: "steamdeck",
+      mapping_name: "TODO",
+      options: { availableControllers: [] },
+    };
+
+    const newConfig = settingsActionReducer(initialConfig, {
+      action: "update",
+      payload: { path: ["dataSource"], value: "gamepad", input: "autocomplete" },
+    });
+
+    expect(newConfig.dataSource).toBe("gamepad");
+  });
+});
+
+describe("buildSettingsTree", () => {
+  it("builds settings tree with correct structure", () => {
+    const config: Config = {
+      dataSource: "sub-joy-topic",
+      subJoyTopic: "/joy",
+      gamepadId: 0,
+      publishMode: false,
+      pubJoyTopic: "/joy",
+      publishFrameId: "",
+      displayMode: "auto",
+      debugGamepad: false,
+      layoutName: "steamdeck",
+      mapping_name: "TODO",
+      options: { availableControllers: [] },
+    };
+
+    const tree = buildSettingsTree(config);
+
+    expect(tree.dataSource).toBeDefined();
+    expect(tree.publish).toBeDefined();
+    expect(tree.display).toBeDefined();
+
+    expect(tree.dataSource?.fields?.dataSource?.value).toBe("sub-joy-topic");
+    expect(tree.publish?.fields?.publishMode?.value).toBe(false);
+    expect(tree.display?.fields?.displayMode?.value).toBe("auto");
+  });
+});
+-e 
+
+File: src/config/panelSettings.ts
+----------------
+import {
+  Topic,
+  SettingsTreeAction,
+  SettingsTreeFields,
+  SettingsTreeNodes,
+} from "@foxglove/extension";
+import { produce } from "immer";
+import * as _ from "lodash";
+
+import { Config, Options } from "./types";
+
+export function settingsActionReducer(prevConfig: Config, action: SettingsTreeAction): Config {
+  return produce(prevConfig, (draft) => {
+    if (action.action === "update") {
+      const { path, value } = action.payload;
+      _.set(draft, path.slice(1), value);
+    }
+  });
+}
+
+export function buildSettingsTree(config: Config, topics?: readonly Topic[]): SettingsTreeNodes {
+  const options: Options = config.options;
+
+  const dataSourceFields: SettingsTreeFields = {
+    dataSource: {
+      label: "Data Source",
+      input: "select",
+      value: config.dataSource,
+      options: [
+        {
+          label: "Subscribed Joy Topic",
+          value: "sub-joy-topic",
+        },
+        {
+          label: "Gamepad",
+          value: "gamepad",
+        },
+        {
+          label: "Interactive",
+          value: "interactive",
+        },
+        {
+          label: "Keyboard",
+          value: "keyboard",
+        },
+      ],
+    },
+    subJoyTopic: {
+      label: "Subscribe. Joy Topic",
+      input: "select",
+      value: config.subJoyTopic,
+      disabled: config.dataSource !== "sub-joy-topic",
+      options: (topics ?? [])
+        .filter((topic) => topic.schemaName === "sensor_msgs/msg/Joy")
+        .map((topic) => ({
+          label: topic.name,
+          value: topic.name,
+        })),
+    },
+    gamepadId: {
+      label: "Gamepad ID",
+      input: "select",
+      value: config.gamepadId.toString(),
+      disabled: config.dataSource !== "gamepad",
+      options: options.availableControllers.map((gp: Gamepad) => ({
+        label: gp.id,
+        value: gp.index.toString(),
+      })),
+    },
+    gamepadMapping: {
+      label: "GP->Joy Mapping",
+      input: "select",
+      value: "default",
+      disabled: config.dataSource !== "gamepad",
+      options: [
+        {
+          label: "Default",
+          value: "default",
+        },
+        {
+          label: "TODO Make selectable",
+          value: "todo",
+        },
+      ],
+    },
+  };
+  const publishFields: SettingsTreeFields = {
+    publishMode: {
+      label: "Publish Mode",
+      input: "boolean",
+      value: config.publishMode,
+      disabled: config.dataSource === "sub-joy-topic",
+    },
+    pubJoyTopic: {
+      label: "Pub Joy Topic",
+      input: "string",
+      value: config.pubJoyTopic,
+    },
+    publishFrameId: {
+      label: "Joy Frame ID",
+      input: "string",
+      value: config.publishFrameId,
+    },
+  };
+  const displayFields: SettingsTreeFields = {
+    displayMode: {
+      label: "Display Mode",
+      input: "select",
+      value: config.displayMode,
+      options: [
+        {
+          label: "Auto-Generated",
+          value: "auto",
+        },
+        {
+          label: "Custom Display",
+          value: "custom",
+        },
+      ],
+    },
+    layoutName: {
+      label: "Layout",
+      input: "select",
+      disabled: config.displayMode === "auto",
+      value: config.layoutName,
+      options: [
+        {
+          label: "Steam Deck",
+          value: "steamdeck",
+        },
+        {
+          label: "iPega PG-9083s",
+          value: "ipega-9083s",
+        },
+        {
+          label: "Xbox",
+          value: "xbox",
+        },
+        {
+          label: "Cheap Controller",
+          value: "cheapo",
+        },
+      ],
+    },
+    debugGamepad: {
+      label: "Debug Gamepad",
+      input: "boolean",
+      value: config.debugGamepad,
+    },
+  };
+
+  const settings: SettingsTreeNodes = {
+    dataSource: {
+      label: "Data Source",
+      fields: dataSourceFields,
+    },
+    publish: {
+      label: "Publish",
+      fields: publishFields,
+    },
+    display: {
+      label: "Display",
+      fields: displayFields,
+    },
+  };
+
+  return settings;
+}
+-e 
+
+File: src/config/types.ts
+----------------
+export type Config = {
+  dataSource: string;
+  subJoyTopic: string;
+  gamepadId: number;
+  publishMode: boolean;
+  pubJoyTopic: string;
+  publishFrameId: string;
+  displayMode: string;
+  debugGamepad: boolean;
+  layoutName: string;
+  mapping_name: string;
+  options: Options;
+};
+
+export type Options = {
+  availableControllers: Gamepad[];
+};
+-e 
+
+File: src/hooks/index.ts
+----------------
+-e 
+
+File: src/hooks/useGamepad.test.ts
+----------------
+import { renderHook, act } from "@testing-library/react";
+
+import { useGamepad } from "./useGamepad";
+
+describe("useGamepad", () => {
+  const mockDidConnect = jest.fn();
+  const mockDidDisconnect = jest.fn();
+  const mockDidUpdate = jest.fn();
+
+  beforeEach(() => {
+    // Mock the Gamepad API
+    global.navigator.getGamepads = jest.fn(
+      () => [{ id: "Gamepad 1", index: 0, buttons: [], axes: [] }] as unknown as Gamepad[],
+    );
+  });
+
+  it("calls didConnect when a gamepad is connected", () => {
+    renderHook(() => {
+      useGamepad({
+        didConnect: mockDidConnect,
+        didDisconnect: mockDidDisconnect,
+        didUpdate: () => mockDidUpdate,
+      });
+    });
+
+    // Simulate gamepad connection
+    act(() => {
+      const connectEvent = new Event("gamepadconnected");
+      Object.defineProperty(connectEvent, "gamepad", { value: { id: "Gamepad 1", index: 0 } });
+      window.dispatchEvent(connectEvent);
+    });
+
+    expect(mockDidConnect).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "Gamepad 1", index: 0 }),
+    );
+  });
+
+  it("calls didDisconnect when a gamepad is disconnected", () => {
+    renderHook(() => {
+      useGamepad({
+        didConnect: mockDidConnect,
+        didDisconnect: mockDidDisconnect,
+        didUpdate: mockDidUpdate,
+      });
+    });
+
+    act(() => {
+      const event = new Event("gamepaddisconnected") as GamepadEvent;
+      Object.defineProperty(event, "gamepad", { value: { id: "Gamepad 1", index: 0 } });
+      window.dispatchEvent(event);
+    });
+
+    expect(mockDidDisconnect).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "Gamepad 1", index: 0 }),
+    );
+  });
+
+  it("calls didUpdate on animation frame", () => {
+    jest.useFakeTimers();
+    renderHook(() => {
+      useGamepad({
+        didConnect: mockDidConnect,
+        didDisconnect: mockDidDisconnect,
+        didUpdate: mockDidUpdate,
+      });
+    });
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
+
+    expect(mockDidUpdate).toHaveBeenCalled();
+    jest.useRealTimers();
+  });
+});
+-e 
+
+File: src/hooks/useGamepad.ts
+----------------
+import { useCallback, useEffect, useRef } from "react";
+
+export function useGamepad({
+  didConnect,
+  didDisconnect,
+  didUpdate,
+}: {
+  didConnect: (gamepad: Gamepad) => void;
+  didDisconnect: (gamepad: Gamepad) => void;
+  didUpdate: (gamepad: Gamepad) => void;
+}): void {
+  // MDN says that valid request IDs are non-zero, so we use zero to indicate
+  // that there is no pending animation request.
+  const animationRequestId = useRef<number>(0);
+
+  const onAnimationFrame = useCallback(() => {
+    let gamepadCount = 0;
+
+    for (const gamepad of navigator.getGamepads()) {
+      if (gamepad == null) {
+        continue;
+      }
+      didUpdate(gamepad);
+      gamepadCount++;
+    }
+
+    // Reschedule for the next animation frame if there are any gamepads
+    animationRequestId.current =
+      gamepadCount === 0 ? 0 : window.requestAnimationFrame(onAnimationFrame);
+  }, [didUpdate]);
+
+  // onAnimationFrame reschedules itself, and the reference to itself can
+  // become stale as dependencies change. When this happens, cancel the old
+  // function and schedule the new one. (Thanks Adam!)
+  useEffect(() => {
+    if (animationRequestId.current !== 0) {
+      window.cancelAnimationFrame(animationRequestId.current);
+    }
+
+    animationRequestId.current = window.requestAnimationFrame(onAnimationFrame);
+  }, [onAnimationFrame]);
+
+  const onConnect = useCallback(
+    (event: GamepadEvent) => {
+      didConnect(event.gamepad);
+
+      // Schedule an animation frame if there is not already one pending
+      if (animationRequestId.current === 0) {
+        animationRequestId.current = window.requestAnimationFrame(onAnimationFrame);
+      }
+    },
+    [didConnect, onAnimationFrame],
+  );
+
+  const onDisconnect = useCallback(
+    (event: GamepadEvent) => {
+      didDisconnect(event.gamepad);
+    },
+    [didDisconnect],
+  );
+
+  // Register event listeners for gamepad connection and disconnection, and
+  // unregister them when the component unmounts.
+  useEffect(() => {
+    window.addEventListener("gamepadconnected", onConnect);
+    window.addEventListener("gamepaddisconnected", onDisconnect);
+    return () => {
+      window.removeEventListener("gamepadconnected", onConnect);
+      window.removeEventListener("gamepaddisconnected", onDisconnect);
+    };
+  }, [onConnect, onDisconnect]);
+
+  // Cancel any pending animation frames when the component unmounts
+  useEffect(() => {
+    return () => {
+      if (animationRequestId.current !== 0) {
+        window.cancelAnimationFrame(animationRequestId.current);
+        animationRequestId.current = 0;
+      }
+    };
+  }, []);
+}
+-e 
+
+File: src/index.ts
+----------------
+import { ExtensionContext } from "@foxglove/extension";
+
+import { initJoyPanel } from "./components/JoyPanel";
+
+export function activate(extensionContext: ExtensionContext): void {
+  extensionContext.registerPanel({ name: "Joystick", initPanel: initJoyPanel });
+}
+-e 
+
+File: src/mappings/cheapo.json
+----------------
+[
+    {
+        "type": "button",
+        "text": "A",
+        "x": 397,
+        "y": 276,
+        "rot": 0,
+        "button": 0
+    },
+    {
+        "type": "button",
+        "text": "B",
+        "x": 430,
+        "y": 242,
+        "rot": 0,
+        "button": 1
+    },
+    {
+        "type": "button",
+        "text": "X",
+        "x": 363,
+        "y": 242,
+        "rot": 0,
+        "button": 3
+    },
+    {
+        "type": "button",
+        "text": "Y",
+        "x": 397,
+        "y": 210,
+        "rot": 0,
+        "button": 4
+    },
+    {
+        "type": "button",
+        "text": "L1",
+        "x": 121,
+        "y": 131,
+        "rot": 0,
+        "button": 6
+    },
+    {
+        "type": "button",
+        "text": "R1",
+        "x": 393,
+        "y": 131,
+        "rot": 0,
+        "button": 7
+    },
+    {
+        "type": "button",
+        "text": "L2",
+        "x": 121,
+        "y": 97,
+        "rot": 0,
+        "button": 8
+    },
+    {
+        "type": "button",
+        "text": "R2",
+        "x": 393,
+        "y": 97,
+        "rot": 0,
+        "button": 9
+    },
+    {
+        "type": "button",
+        "text": "Sel",
+        "x": 211,
+        "y": 242,
+        "rot": 0,
+        "button": 10
+    },
+    {
+        "type": "button",
+        "text": "Sta",
+        "x": 302,
+        "y": 242,
+        "rot": 0,
+        "button": 11
+    },
+    {
+        "type": "bar",
+        "axis": 4,
+        "x": 395,
+        "y": 60,
+        "rot": 0
+    },
+    {
+        "type": "bar",
+        "axis": 5,
+        "x": 119,
+        "y": 60,
+        "rot": 0
+    },
+    {
+        "type": "stick",
+        "axisX": 0,
+        "axisY": 1,
+        "button": 13,
+        "x": 184,
+        "y": 308
+    },
+    {
+        "type": "stick",
+        "axisX": 2,
+        "axisY": 3,
+        "button": 14,
+        "x": 329,
+        "y": 308
+    },
+    {
+        "type": "d-pad",
+        "axisX": 6,
+        "axisY": 7,
+        "x": 117,
+        "y": 243
+    }
+]
+
+
+
+
+
+-e 
+
+File: src/mappings/index.ts
+----------------
+export { default as kbmapping1 } from "./kbmapping1.json";
+-e 
+
+File: src/mappings/ipega-9083s.json
+----------------
+[
+    {
+        "type": "button",
+        "text": "A",
+        "x": 430,
+        "y": 281,
+        "rot": 0,
+        "button": 0
+    },
+    {
+        "type": "button",
+        "text": "B",
+        "x": 453,
+        "y": 257,
+        "rot": 0,
+        "button": 1
+    },
+    {
+        "type": "button",
+        "text": "X",
+        "x": 406,
+        "y": 257,
+        "rot": 0,
+        "button": 2
+    },
+    {
+        "type": "button",
+        "text": "Y",
+        "x": 430,
+        "y": 235,
+        "rot": 0,
+        "button": 3
+    },
+    {
+        "type": "button",
+        "text": "L1",
+        "x": 72,
+        "y": 110,
+        "rot": 0,
+        "button": 4
+    },
+    {
+        "type": "button",
+        "text": "R1",
+        "x": 440,
+        "y": 110,
+        "rot": 0,
+        "button": 5
+    },
+    {
+        "type": "button",
+        "text": "L2",
+        "x": 72,
+        "y": 80,
+        "rot": 0,
+        "button": 6
+    },
+    {
+        "type": "button",
+        "text": "R2",
+        "x": 440,
+        "y": 80,
+        "rot": 0,
+        "button": 7
+    },
+    {
+        "type": "button",
+        "text": "Sel",
+        "x": 100,
+        "y": 340,
+        "rot": 0,
+        "button": 8
+    },
+    {
+        "type": "button",
+        "text": "Sta",
+        "x": 408,
+        "y": 340,
+        "rot": 0,
+        "button": 9
+    },
+    {
+        "type": "bar",
+        "axis": 4,
+        "x": 440,
+        "y": 50,
+        "rot": 0
+    },
+    {
+        "type": "bar",
+        "axis": 5,
+        "x": 72,
+        "y": 50,
+        "rot": 0
+    },
+    {
+        "type": "stick",
+        "axisX": 0,
+        "axisY": 1,
+        "button": 10,
+        "x": 89,
+        "y": 187
+    },
+    {
+        "type": "stick",
+        "axisX": 2,
+        "axisY": 3,
+        "button": 11,
+        "x": 422,
+        "y": 187
+    },
+    {
+        "type": "d-pad",
+        "axisX": 6,
+        "axisY": 7,
+        "x": 77,
+        "y": 260
+    }
+]
+
+
+
+
+
+-e 
+
+File: src/mappings/kbmapping1.json
+----------------
+{
+    "l": {
+        "button": 1,
+        "toggle": false,
+        "axis": -1,
+        "direction": null
+    },
+    "k": {
+        "button": 0,
+        "toggle": false,
+        "axis": -1,
+        "direction": null
+    },
+    "j": {
+        "button": 3,
+        "toggle": false,
+        "axis": -1,
+        "direction": null
+    },
+    "i": {
+        "button": 4,
+        "toggle": false,
+        "axis": -1,
+        "direction": null
+    },
+    " ": {
+        "button": 6,
+        "toggle": false,
+        "axis": -1,
+        "direction": null
+    },
+    "w": {
+        "axis": 1,
+        "direction": "+",
+        "button": -1,
+        "toggle": null
+    },
+    "s": {
+        "axis": 1,
+        "direction": "-",
+        "button": -1,
+        "toggle": null
+    },
+    "a": {
+        "axis": 0,
+        "direction": "+",
+        "button": -1,
+        "toggle": null
+    },
+    "d": {
+        "axis": 0,
+        "direction": "-",
+        "button": -1,
+        "toggle": null
+    }
+}-e 
+
+File: src/mappings/steamdeck.json
+----------------
+[
+    {
+        "type": "button",
+        "text": "A",
+        "x": 445,
+        "y": 184,
+        "rot": 0,
+        "button": 0
+    },
+    {
+        "type": "button",
+        "text": "B",
+        "x": 472,
+        "y": 157,
+        "rot": 0,
+        "button": 1
+    },
+    {
+        "type": "button",
+        "text": "X",
+        "x": 417,
+        "y": 157,
+        "rot": 0,
+        "button": 2
+    },
+    {
+        "type": "button",
+        "text": "Y",
+        "x": 445,
+        "y": 131,
+        "rot": 0,
+        "button": 3
+    },
+    {
+        "type": "button",
+        "text": "L1",
+        "x": 72,
+        "y": 100,
+        "rot": 0,
+        "button": 4
+    },
+    {
+        "type": "button",
+        "text": "R1",
+        "x": 440,
+        "y": 100,
+        "rot": 0,
+        "button": 5
+    },
+    {
+        "type": "button",
+        "text": "L2",
+        "x": 72,
+        "y": 70,
+        "rot": 0,
+        "button": 6
+    },
+    {
+        "type": "button",
+        "text": "R2",
+        "x": 440,
+        "y": 70,
+        "rot": 0,
+        "button": 7
+    },
+    {
+        "type": "button",
+        "text": "L4",
+        "x": 203,
+        "y": 300,
+        "rot": 0,
+        "button": 17
+    },
+    {
+        "type": "button",
+        "text": "R4",
+        "x": 309,
+        "y": 300,
+        "rot": 0,
+        "button": 18
+    },
+    {
+        "type": "button",
+        "text": "L5",
+        "x": 203,
+        "y": 340,
+        "rot": 0,
+        "button": 19
+    },
+    {
+        "type": "button",
+        "text": "R5",
+        "x": 309,
+        "y": 340,
+        "rot": 0,
+        "button": 20
+    },
+    {
+        "type": "button",
+        "text": "Sel",
+        "x": 112,
+        "y": 128,
+        "rot": 0,
+        "button": 8
+    },
+    {
+        "type": "button",
+        "text": "Sta",
+        "x": 400,
+        "y": 128,
+        "rot": 0,
+        "button": 9
+    },
+    {
+        "type": "bar",
+        "axis": 4,
+        "x": 440,
+        "y": 50,
+        "rot": 0
+    },
+    {
+        "type": "bar",
+        "axis": 5,
+        "x": 72,
+        "y": 50,
+        "rot": 0
+    },
+    {
+        "type": "stick",
+        "axisX": 0,
+        "axisY": 1,
+        "button": 10,
+        "x": 151,
+        "y": 200
+    },
+    {
+        "type": "stick",
+        "axisX": 2,
+        "axisY": 3,
+        "button": 11,
+        "x": 361,
+        "y": 200
+    },
+    {
+        "type": "d-pad",
+        "axisX": 6,
+        "axisY": 7,
+        "x": 67,
+        "y": 157
+    }
+]
+
+
+
+
+
+-e 
+
+File: src/mappings/xbox.json
+----------------
+[
+    {
+        "type": "button",
+        "text": "A",
+        "x": 376,
+        "y": 217,
+        "rot": 0,
+        "button": 0
+    },
+    {
+        "type": "button",
+        "text": "B",
+        "x": 408,
+        "y": 186,
+        "rot": 0,
+        "button": 1
+    },
+    {
+        "type": "button",
+        "text": "X",
+        "x": 344,
+        "y": 186,
+        "rot": 0,
+        "button": 2
+    },
+    {
+        "type": "button",
+        "text": "Y",
+        "x": 376,
+        "y": 153,
+        "rot": 0,
+        "button": 3
+    },
+    {
+        "type": "button",
+        "text": "L1",
+        "x": 135,
+        "y": 110,
+        "rot": 0,
+        "button": 4
+    },
+    {
+        "type": "button",
+        "text": "R1",
+        "x": 377,
+        "y": 110,
+        "rot": 0,
+        "button": 5
+    },
+    {
+        "type": "button",
+        "text": "L2",
+        "x": 135,
+        "y": 70,
+        "rot": 0,
+        "button": 6
+    },
+    {
+        "type": "button",
+        "text": "R2",
+        "x": 377,
+        "y": 70,
+        "rot": 0,
+        "button": 7
+    },
+    {
+        "type": "button",
+        "text": "Sel",
+        "x": 223,
+        "y": 183,
+        "rot": 0,
+        "button": 8
+    },
+    {
+        "type": "button",
+        "text": "Sta",
+        "x": 290,
+        "y": 183,
+        "rot": 0,
+        "button": 9
+    },
+    {
+        "type": "button",
+        "axis": 4,
+        "x": 135,
+        "y": 40,
+        "rot": 0
+    },
+    {
+        "type": "button",
+        "axis": 5,
+        "x": 377,
+        "y": 40,
+        "rot": 0
+    },
+    {
+        "type": "stick",
+        "axisX": 0,
+        "axisY": 1,
+        "button": 10,
+        "x": 140,
+        "y": 184
+    },
+    {
+        "type": "stick",
+        "axisX": 2,
+        "axisY": 3,
+        "button": 11,
+        "x": 318,
+        "y": 255
+    },
+    {
+        "type": "d-pad",
+        "axisX": 6,
+        "axisY": 7,
+        "x": 195,
+        "y": 260
+    }
+]
+
+
+
+
+
+-e 
+
+File: src/types/gamepad.ts
+----------------
+export interface ButtonConfig {
+  type: string;
+  text: string;
+  x: number;
+  y: number;
+  rot: number;
+  button: number;
+}
+
+export interface AnalogButtonConfig {
+  type: string;
+  text: string;
+  rot: number;
+  button: number;
+}
+
+export interface BarConfig {
+  type: string;
+  x: number;
+  y: number;
+  rot: number;
+  axis: number;
+}
+
+export interface StickConfig {
+  type: string;
+  x: number;
+  y: number;
+  axisX: number;
+  axisY: number;
+  button: number;
+}
+
+export interface DPadConfig {
+  type: string;
+  x: number;
+  y: number;
+  axisX: number;
+  axisY: number;
+}
+
+export type DisplayMapping = (ButtonConfig | BarConfig | StickConfig | DPadConfig)[];
+-e 
+
+File: src/types/index.ts
+----------------
+export * from "./ros";
+export * from "./gamepad";
+export * from "./keyboard";
+-e 
+
+File: src/types/keyboard.ts
+----------------
+export type KbMap = {
+  button: number;
+  axis: number;
+  direction: number;
+  value: number;
+};
+-e 
+
+File: src/types/ros.ts
+----------------
+import { Time } from "@foxglove/rostime";
+
+export type Header = {
+  stamp: Time;
+  frame_id: string;
+};
+
+// sensor_msgs/Joy message definition
+// http://docs.ros.org/en/api/sensor_msgs/html/msg/Joy.html
+export type Joy = {
+  header: Header;
+  axes: number[];
+  buttons: number[];
+};
+-e 
+
+File: tsconfig.json
+----------------
+{
+  "extends": "create-foxglove-extension/tsconfig/tsconfig.json",
+
+  "include": ["./src/**/*"],
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "lib": ["dom"],
+
+    // These two settings prevent typescript from emitting .d.ts files we don't need in
+    // the compiled extension.
+    "composite": false,
+    "declaration": false,
+
+    // Additional TypeScript error reporting checks are enabled by default to improve code quality.
+    // Enable/disable these checks as necessary to suit your coding preferences or work with
+    // existing code
+    "noFallthroughCasesInSwitch": true,
+    // "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true,
+    // "noUnusedLocals": true,
+    // "noUnusedParameters": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}
+-e 
+

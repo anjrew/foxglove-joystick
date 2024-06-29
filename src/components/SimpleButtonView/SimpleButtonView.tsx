@@ -9,10 +9,11 @@ function getButtonColor(value: number): string {
   return `hsl(${hue}, 100%, 50%)`;
 }
 
-export function SimpleButtonView(props: { joy: Joy | undefined }): JSX.Element {
+export function SimpleButtonView(props: { readonly joy: Joy | undefined }): JSX.Element {
   const buttons = props.joy
     ? props.joy.buttons.map((item: number, index: number) => (
         <Button
+          key={`button-${index}`} // Use a unique identifier for the key
           variant={item > 0 ? "contained" : "outlined"}
           size="large"
           style={{ backgroundColor: getButtonColor(item) }}

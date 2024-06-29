@@ -4,6 +4,7 @@
         "fracwidth",
         "gamepadconnected",
         "gamepaddisconnected",
+        "immer",
         "ipega",
         "kbmapping",
         "nsec",

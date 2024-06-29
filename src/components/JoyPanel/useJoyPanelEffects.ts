@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
-import { buildSettingsTree } from "../../config/panelSettings";
+import { buildSettingsTree, settingsActionReducer } from "../../config/panelSettings";
 import { Joy, KbMap } from "../../types";
-import { PanelExtensionContext } from "@foxglove/extension";
+import { PanelExtensionContext, SettingsTreeAction } from "@foxglove/extension";
 import { useJoyPanelState } from './useJoyPanelState';
 import { useJoyPanelCallbacks } from './joyPanelCallbacks';
 
@@ -35,7 +35,9 @@ export function useJoyPanelEffects({
   // Register the settings tree
   useEffect(() => {
     context.updatePanelSettingsEditor({
-      actionHandler: (action) => setConfig((prev) => buildSettingsTree(prev, action)),
+      actionHandler: (action: SettingsTreeAction) => {
+        setConfig((prevConfig) => settingsActionReducer(prevConfig, action));
+      },
       nodes: buildSettingsTree(config),
     });
   }, [context, config, setConfig]);
@@ -67,16 +69,17 @@ export function useJoyPanelEffects({
   }, [messages, config.publishFrameId, setJoy]);
 
   // Keyboard event listeners
-  useEffect(() => {
-    if (config.dataSource === "keyboard" && kbEnabled) {
-      document.addEventListener("keydown", callbacks.handleKeyDown);
-      document.addEventListener("keyup", callbacks.handleKeyUp);
-      return () => {
-        document.removeEventListener("keydown", callbacks.handleKeyDown);
-        document.removeEventListener("keyup", callbacks.handleKeyUp);
-      };
-    }
-  }, [config.dataSource, kbEnabled, callbacks.handleKeyDown, callbacks.handleKeyUp]);
+    useEffect(() => {
+      if (config.dataSource === "keyboard" && kbEnabled) {
+        document.addEventListener("keydown", callbacks.handleKeyDown);
+        document.addEventListener("keyup", callbacks.handleKeyUp);
+        return () => {
+          document.removeEventListener("keydown", callbacks.handleKeyDown);
+          document.removeEventListener("keyup", callbacks.handleKeyUp);
+        };
+      }
+      return () => {};
+    }, [config.dataSource, kbEnabled, callbacks.handleKeyDown, callbacks.handleKeyUp]);
 
   // Generate Joy from Keys
   useEffect(() => {

@@ -11,7 +11,7 @@ export function JoyPanel({ context }: { readonly context: PanelExtensionContext 
   const {
     config, setConfig,
     joy, setJoy,
-    topics, setTopics,
+    setTopics,
     messages, setMessages,
     pubTopic, setPubTopic,
     kbEnabled, setKbEnabled,

@@ -1,7 +1,7 @@
-import { LayoutActions, PanelExtensionContext } from "@foxglove/extension";<AnimationPlaybackEvent
-import { render } from "@testing-library/react";
+import { LayoutActions, PanelExtensionContext } from "@foxglove/extension";
 
 import { JoyPanel } from "./JoyPanel";
+import { render } from "@testing-library/react";
 
 const mockDiv: HTMLDivElement = document.createElement("div");
 
