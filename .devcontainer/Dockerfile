@@ -5,3 +5,9 @@ COPY package*.json ./
 
 # Install dependencies
 RUN npm ci
+
+# Set the user
+USER node
+
+# Command to keep the container running
+CMD ["bash"]
