@@ -4,7 +4,6 @@ import { Config } from "./panelSettings";
 import { kbmapping1 } from "../mappings";
 import { KbMap } from "../types";
 
-
 export const createDefaultConfig = (context: PanelExtensionContext): Config => {
   const partialConfig = context.initialState as Partial<Config>;
 
@@ -26,18 +25,16 @@ export const createDefaultConfig = (context: PanelExtensionContext): Config => {
 };
 
 export const createKeyboardMapping = (): Map<string, KbMap> => {
-  {
-    const keyMap = new Map<string, KbMap>();
+  const keyMap = new Map<string, KbMap>();
 
-    for (const [key, value] of Object.entries(kbmapping1)) {
-      const k: KbMap = {
-        button: value.button,
-        axis: value.axis,
-        direction: value.direction === "+" ? 1 : 0,
-        value: 0,
-      };
-      keyMap.set(key, k);
-    }
-    return keyMap;
+  for (const [key, value] of Object.entries(kbmapping1)) {
+    const k: KbMap = {
+      button: value.button,
+      axis: value.axis,
+      direction: value.direction === "+" ? 1 : 0,
+      value: 0,
+    };
+    keyMap.set(key, k);
   }
+  return keyMap;
 };
