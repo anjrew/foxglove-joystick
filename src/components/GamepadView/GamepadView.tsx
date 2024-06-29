@@ -172,11 +172,11 @@ function generateDPad(valueX: number, valueY: number, x: number, y: number, radi
   );
 }
 
-export function GamepadView(props: {
+export function GamepadView(props: Readonly<{
   joy: Joy | undefined;
   cbInteractChange: (joy: Joy) => void;
   layoutName: string;
-}): React.ReactElement {
+}>): React.ReactElement {
   const { joy, cbInteractChange, layoutName } = props;
   const dispItems = [];
 

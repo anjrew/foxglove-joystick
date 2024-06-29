@@ -10,7 +10,7 @@ import { FormGroup, FormControlLabel, Switch } from "@mui/material";
 import { useEffect, useLayoutEffect, useState, useCallback } from "react";
 import ReactDOM from "react-dom";
 
-import { Config, createDefaultConfig, createKeyboardMapping } from "../../config";
+import { PanelConfig, createDefaultConfig, createKeyboardMapping } from "../../config";
 import { buildSettingsTree, settingsActionReducer } from "../../config/panelSettings";
 import { useGamepad } from "../../hooks/useGamepad";
 import { Joy, KbMap } from "../../types";
@@ -29,7 +29,7 @@ export function JoyPanel({ context }: { readonly context: PanelExtensionContext 
 
   const [renderDone, setRenderDone] = useState<(() => void) | undefined>();
 
-  const [config, setConfig] = useState<Config>(() => createDefaultConfig(context));
+  const [config, setConfig] = useState<PanelConfig>(() => createDefaultConfig(context));
 
   const settingsActionHandler = useCallback(
     (action: SettingsTreeAction) => {
@@ -86,7 +86,7 @@ export function JoyPanel({ context }: { readonly context: PanelExtensionContext 
 
   useGamepad({
     didConnect: useCallback((gp: Gamepad) => {
-      setConfig((prevConfig: Config) => {
+      setConfig((prevConfig: PanelConfig) => {
         return {
           ...prevConfig,
           options: {
@@ -99,7 +99,7 @@ export function JoyPanel({ context }: { readonly context: PanelExtensionContext 
     }, []),
 
     didDisconnect: useCallback((gp: Gamepad) => {
-      setConfig((prevConfig: Config) => {
+      setConfig((prevConfig: PanelConfig) => {
         return {
           ...prevConfig,
           options: {

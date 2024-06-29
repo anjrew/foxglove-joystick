@@ -7,9 +7,9 @@ import {
 import { produce } from "immer";
 import * as _ from "lodash";
 
-import { Config, Options } from "./types";
+import { PanelConfig, PanelOptions } from "./types";
 
-export function settingsActionReducer(prevConfig: Config, action: SettingsTreeAction): Config {
+export function settingsActionReducer(prevConfig: PanelConfig, action: SettingsTreeAction): PanelConfig {
   return produce(prevConfig, (draft) => {
     if (action.action === "update") {
       const { path, value } = action.payload;
@@ -18,8 +18,8 @@ export function settingsActionReducer(prevConfig: Config, action: SettingsTreeAc
   });
 }
 
-export function buildSettingsTree(config: Config, topics?: readonly Topic[]): SettingsTreeNodes {
-  const options: Options = config.options;
+export function buildSettingsTree(config: PanelConfig, topics?: readonly Topic[]): SettingsTreeNodes {
+  const options: PanelOptions = config.options;
 
   const dataSourceFields: SettingsTreeFields = {
     dataSource: {

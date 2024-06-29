@@ -1,4 +1,4 @@
-export type Config = {
+export type PanelConfig = {
   dataSource: string;
   subJoyTopic: string;
   gamepadId: number;
@@ -9,9 +9,9 @@ export type Config = {
   debugGamepad: boolean;
   layoutName: string;
   mapping_name: string;
-  options: Options;
+  options: PanelOptions;
 };
 
-export type Options = {
+export type PanelOptions = {
   availableControllers: Gamepad[];
 };

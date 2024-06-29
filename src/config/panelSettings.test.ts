@@ -1,9 +1,9 @@
 import { settingsActionReducer, buildSettingsTree } from "./panelSettings";
-import { Config } from "./types";
+import { PanelConfig } from "./types";
 
 describe("settingsActionReducer", () => {
   it("updates config with new values", () => {
-    const initialConfig: Config = {
+    const initialConfig: PanelConfig = {
       dataSource: "gamepad",
       subJoyTopic: "/joy",
       gamepadId: 0,
@@ -28,7 +28,7 @@ describe("settingsActionReducer", () => {
 
 describe("buildSettingsTree", () => {
   it("builds settings tree with correct structure", () => {
-    const config: Config = {
+    const config: PanelConfig = {
       dataSource: "sub-joy-topic",
       subJoyTopic: "/joy",
       gamepadId: 0,

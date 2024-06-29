@@ -6,6 +6,7 @@
         "gamepaddisconnected",
         "ipega",
         "kbmapping",
+        "rostime",
         "steamdeck"
     ]
 }
