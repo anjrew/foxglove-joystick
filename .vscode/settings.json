@@ -2,7 +2,10 @@
     "cSpell.words": [
         "disp",
         "fracwidth",
+        "gamepadconnected",
+        "gamepaddisconnected",
         "ipega",
+        "kbmapping",
         "steamdeck"
     ]
 }
