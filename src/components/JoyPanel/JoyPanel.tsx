@@ -10,8 +10,8 @@ import { FormGroup, FormControlLabel, Switch } from "@mui/material";
 import { useEffect, useLayoutEffect, useState, useCallback } from "react";
 import ReactDOM from "react-dom";
 
-import { createDefaultConfig, createKeyboardMapping } from "../../config";
-import { Config, buildSettingsTree, settingsActionReducer } from "../../config/panelSettings";
+import { Config, createDefaultConfig, createKeyboardMapping } from "../../config";
+import { buildSettingsTree, settingsActionReducer } from "../../config/panelSettings";
 import { useGamepad } from "../../hooks/useGamepad";
 import { Joy, KbMap } from "../../types";
 import { GamepadView } from "../GamepadView/GamepadView";

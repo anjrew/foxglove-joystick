@@ -1,6 +1,6 @@
 import { PanelExtensionContext } from "@foxglove/extension";
 
-import { Config } from "./panelSettings";
+import { Config } from "./types";
 import { kbmapping1 } from "../mappings";
 import { KbMap } from "../types";
 

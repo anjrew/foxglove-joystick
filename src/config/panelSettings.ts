@@ -7,23 +7,7 @@ import {
 import { produce } from "immer";
 import * as _ from "lodash";
 
-export type Config = {
-  dataSource: string;
-  subJoyTopic: string;
-  gamepadId: number;
-  publishMode: boolean;
-  pubJoyTopic: string;
-  publishFrameId: string;
-  displayMode: string;
-  debugGamepad: boolean;
-  layoutName: string;
-  mapping_name: string;
-  options: Options;
-};
-
-export type Options = {
-  availableControllers: Gamepad[];
-};
+import { Config, Options } from "./types";
 
 export function settingsActionReducer(prevConfig: Config, action: SettingsTreeAction): Config {
   return produce(prevConfig, (draft) => {
@@ -67,7 +51,7 @@ export function buildSettingsTree(config: Config, topics?: readonly Topic[]): Se
       value: config.subJoyTopic,
       disabled: config.dataSource !== "sub-joy-topic",
       options: (topics ?? [])
-        .filter((topic) => topic.datatype === "sensor_msgs/msg/Joy")
+        .filter((topic) => topic.schemaName === "sensor_msgs/msg/Joy")
         .map((topic) => ({
           label: topic.name,
           value: topic.name,
