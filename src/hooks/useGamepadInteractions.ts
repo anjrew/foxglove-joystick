@@ -14,13 +14,11 @@ export function useGamepadInteractions(
       setNumButtons(0);
       setNumAxes(0);
     } else {
-      setNumButtons(
-        Math.max(
-          ...displayMapping.map((item) =>
-            item.type === "button" ? (item as ButtonConfig).button : -1
-          )
-        ) + 1
-      );
+      const buttonConfigs = displayMapping.filter(item => item.type === "button") as ButtonConfig[];
+      const numButtons = buttonConfigs.length;
+    
+      setNumButtons(numButtons);
+
       setNumAxes(
         displayMapping.reduce((tempMax, current) => {
           if (current.type === "stick") {
@@ -35,6 +33,9 @@ export function useGamepadInteractions(
   }, [displayMapping]);
 
   useEffect(() => {
+    if (numButtons === 0 || numAxes === 0) {
+      return;
+    }
     const tmpJoy = {
       header: {
         frame_id: "",
