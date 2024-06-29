@@ -1,112 +1,92 @@
 import { render, screen } from '@testing-library/react';
 import { GamepadView } from './GamepadView';
-import { useJoyPanelCallbacks } from '../../components/JoyPanel/joyPanelCallbacks';
 import { Joy } from '../../types';
-import { useJoyPanelState } from '../JoyPanel/useJoyPanelState';
+import * as gamepadMappings from '../../utils/gamepadMappings';
 
-// Add the import statement for useState
-import React from 'react';
+// Mock the child components
+jest.mock('../GamepadBackground', () => ({
+  GamepadBackground: () => <div data-testid="gamepad-background" />,
+}));
+jest.mock('../GamepadButton', () => ({
+  GamepadButton: () => <div data-testid="gamepad-button" />,
+}));
+jest.mock('../GamepadStick', () => ({
+  GamepadStick: () => <div data-testid="gamepad-stick" />,
+}));
+jest.mock('../GamepadDPad', () => ({
+  GamepadDPad: () => <div data-testid="gamepad-dpad" />,
+}));
+jest.mock('../GamepadBar', () => ({
+  GamepadBar: () => <div data-testid="gamepad-bar" />,
+}));
 
+// Mock the custom hooks
+jest.mock('../../hooks/useGamepadInteractions', () => ({
+  useGamepadInteractions: () => ({
+    handleButtonInteraction: jest.fn(),
+    handleAxisInteraction: jest.fn(),
+  }),
+}));
+jest.mock('../../hooks/usePanPrevention', () => ({
+  usePanPrevention: jest.fn(),
+}));
 
 describe('GamepadView', () => {
+  const mockJoy: Joy = {
+    header: { frame_id: '', stamp: { sec: 0, nsec: 0 } },
+    buttons: [1, 0, 1],
+    axes: [0.5, -0.5, 0.75],
+  };
+
+  const mockCbInteractChange = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('maps Xbox controller input correctly', () => {
-
-
-    const mockGamepad: Gamepad = {
-      id: 'Xbox Controller (STANDARD GAMEPAD Vendor: 045e Product: 02ea)',
-      index: 0,
-      connected: true,
-      timestamp: 0,
-      mapping: 'standard',
-      axes: [0.1, -0.2, 0.3, -0.4],
-      buttons: [
-        { pressed: true, touched: true, value: 1 },
-        { pressed: false, touched: false, value: 0 },
-        // Add more buttons if needed
-        // Example: { pressed: false, touched: false, value: 0 },
-      ],
-      hapticActuators: [],
-      vibrationActuator: null,
-    };
-
-    const mockJoy: Joy = {
-      header: { frame_id: 'test_frame', stamp: { sec: 0, nsec: 0 } },
-      axes: [-0.1, 0.2, -0.3, 0.4],
-      buttons: [1, 0],
-    };
-    
-    const TestComponent = ({ mockGamepad }: { mockGamepad: Gamepad }) => {
-      const { setJoy, setKbEnabled, setTrackedKeys, config, setConfig } = useJoyPanelState();
-      
-      const { handleGamepadUpdate } = useJoyPanelCallbacks(
-        config,
-        setConfig,
-        setJoy,
-        setTrackedKeys,
-        setKbEnabled
-      );
-    
-      // Simulate the gamepad update
-      React.useEffect(() => {
-        handleGamepadUpdate(mockGamepad);
-      }, [mockGamepad, handleGamepadUpdate]);
-    
-      return <GamepadView joy={mockJoy} cbInteractChange={setJoy} layoutName="xbox" />;
-    };
-
-    render(<TestComponent mockGamepad={mockGamepad} />);
-
-    // Add assertions to check if the correct elements are rendered
-    expect(screen.getByText('A')).toBeInTheDocument();
-    expect(screen.getByText('B')).toBeInTheDocument();
-  })
-
-  it('maps Steam Deck controller input correctly', () => {
-
-    const { setJoy, setKbEnabled, setTrackedKeys, config, setConfig } = useJoyPanelState();
-  
-    const { handleGamepadUpdate } = useJoyPanelCallbacks(
-      config,
-      setConfig,
-      setJoy,
-      setTrackedKeys,
-      setKbEnabled,
-    );
-
-    const mockGamepad: Gamepad = {
-      id: 'Steam Deck Controller',
-      index: 1,
-      connected: true,
-      timestamp: 0,
-      mapping: 'standard',
-      axes: [0.2, -0.3, 0.4, -0.5],
-      buttons: [
-        { pressed: true, touched: true, value: 1 },
-        { pressed: false, touched: false, value: 0 },
-        // Add more buttons if needed
-      ],
-      hapticActuators: [],
-      vibrationActuator: null,
-    };
-
-    const mockJoy: Joy = {
-      header: { frame_id: 'test_frame', stamp: { sec: 0, nsec: 0 } },
-      axes: [-0.1, 0.2, -0.3, 0.4],
-      buttons: [1, 0],
-    };
-
-    render( <GamepadView joy={mockJoy} cbInteractChange={setJoy} layoutName="xbox" />);
-
-    // Add assertions to check if the correct elements are rendered
-    expect(screen.getByText('A')).toBeInTheDocument();
-    expect(screen.getByText('B')).toBeInTheDocument();
-    // Add other necessary assertions
+  it('renders without crashing', () => {
+    render(<GamepadView joy={mockJoy} cbInteractChange={mockCbInteractChange} layoutName="xbox" />);
+    expect(screen.getByTestId('gamepad-background')).toBeInTheDocument();
   });
 
-  // Add more tests for different controller types and layouts
+  it('displays "No mapping!" when displayMapping is empty', () => {
+    jest.spyOn(gamepadMappings, 'getGamepadMapping').mockReturnValue([]);
+    render(<GamepadView joy={mockJoy} cbInteractChange={mockCbInteractChange} layoutName="unknown" />);
+    expect(screen.getByText('No mapping!')).toBeInTheDocument();
+  });
+
+  it('renders correct number of each component type based on mapping', () => {
+    const mockMapping = [
+      { type: 'button', button: 0, x: 0, y: 0, text: 'A' },
+      { type: 'stick', axisX: 0, axisY: 1, button: 1, x: 0, y: 0 },
+      { type: 'd-pad', axisX: 2, axisY: 3, x: 0, y: 0 },
+      { type: 'bar', axis: 4, x: 0, y: 0, rot: 0 },
+    ];
+    jest.spyOn(gamepadMappings, 'getGamepadMapping').mockReturnValue(mockMapping);
+
+    render(<GamepadView joy={mockJoy} cbInteractChange={mockCbInteractChange} layoutName="xbox" />);
+
+    expect(screen.getAllByTestId('gamepad-button')).toHaveLength(1);
+    expect(screen.getAllByTestId('gamepad-stick')).toHaveLength(1);
+    expect(screen.getAllByTestId('gamepad-dpad')).toHaveLength(1);
+    expect(screen.getAllByTestId('gamepad-bar')).toHaveLength(1);
+  });
+
+  it('passes correct props to child components', () => {
+    const mockMapping = [
+      { type: 'button', button: 0, x: 0, y: 0, text: 'A' },
+      { type: 'stick', axisX: 0, axisY: 1, button: 1, x: 0, y: 0 },
+    ];
+    jest.spyOn(gamepadMappings, 'getGamepadMapping').mockReturnValue(mockMapping);
+
+    const { container } = render(<GamepadView joy={mockJoy} cbInteractChange={mockCbInteractChange} layoutName="xbox" />);
+
+    const buttonElement = container.querySelector('[data-testid="gamepad-button"]');
+    expect(buttonElement).toHaveAttribute('value', '1');
+
+    const stickElement = container.querySelector('[data-testid="gamepad-stick"]');
+    expect(stickElement).toHaveAttribute('xValue', '0.5');
+    expect(stickElement).toHaveAttribute('yValue', '-0.5');
+    expect(stickElement).toHaveAttribute('buttonValue', '0');
+  });
 });

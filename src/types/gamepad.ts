@@ -1,5 +1,8 @@
-export interface ButtonConfig {
+export interface GamepadComponentConfig {
   type: string;
+}
+
+export interface ButtonConfig extends GamepadComponentConfig{
   text: string;
   x: number;
   y: number;
@@ -7,23 +10,20 @@ export interface ButtonConfig {
   button: number;
 }
 
-export interface AnalogButtonConfig {
-  type: string;
+export interface AnalogButtonConfig  extends GamepadComponentConfig{
   text: string;
   rot: number;
   button: number;
 }
 
-export interface BarConfig {
-  type: string;
+export interface BarConfig  extends GamepadComponentConfig{
   x: number;
   y: number;
   rot: number;
   axis: number;
 }
 
-export interface StickConfig {
-  type: string;
+export interface StickConfig  extends GamepadComponentConfig{
   x: number;
   y: number;
   axisX: number;
@@ -31,8 +31,7 @@ export interface StickConfig {
   button: number;
 }
 
-export interface DPadConfig {
-  type: string;
+export interface DPadConfig  extends GamepadComponentConfig{
   x: number;
   y: number;
   axisX: number;
@@ -56,4 +55,4 @@ export enum PointerEventType {
   Up,
 }
 
-export type DisplayMapping = Array<ButtonConfig | BarConfig | StickConfig | DPadConfig>;
+export type DisplayMapping = Array<GamepadComponentConfig>;
