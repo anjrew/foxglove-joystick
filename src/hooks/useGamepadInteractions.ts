@@ -12,7 +12,22 @@ import {
 export function useGamepadInteractions(
   displayMapping: DisplayMapping,
   cbInteractChange: (joy: Joy) => void,
-): void {
+): {
+  numButtons: number;
+  numAxes: number;
+  interactions: Interaction[];
+  handleButtonInteraction: (
+    idx: number,
+    e: React.PointerEvent,
+    eventType: PointerEventType,
+  ) => void;
+  handleAxisInteraction: (
+    idxX: number,
+    idxY: number,
+    e: React.PointerEvent,
+    eventType: PointerEventType,
+  ) => void;
+} {
   const [numButtons, setNumButtons] = useState<number>(0);
   const [numAxes, setNumAxes] = useState<number>(0);
   const [interactions, setInteractions] = useState<Interaction[]>([]);

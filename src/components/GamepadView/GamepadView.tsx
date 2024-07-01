@@ -4,7 +4,7 @@ import { GamepadBackground } from "./GamepadBackground";
 import { useGamepadInteractions } from "../../hooks/useGamepadInteractions";
 import { usePanPrevention } from "../../hooks/usePanPrevention";
 import { BarConfig, ButtonConfig, DPadConfig, Joy, StickConfig } from "../../types";
-import { getGamepadMapping } from "../../utils/gamepadMappings";
+import { GamepadMappingKey, getGamepadMapping } from "../../utils/gamepadMappings";
 import { GamepadBar } from "../GamepadBar";
 import { GamepadButton } from "../GamepadButton";
 import { GamepadDPad } from "../GamepadDPad";
@@ -14,7 +14,7 @@ export function GamepadView(
   props: Readonly<{
     joy: Joy | undefined;
     cbInteractChange: (joy: Joy) => void;
-    layoutName: string;
+    layoutName: GamepadMappingKey;
   }>,
 ): React.ReactElement {
   const { joy, cbInteractChange, layoutName } = props;
