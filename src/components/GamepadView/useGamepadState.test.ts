@@ -1,14 +1,9 @@
-import { renderHook, act } from '@testing-library/react-hooks';
-import { useGamepadState, PointerEventType } from './useGamepadState';
-import { getGamepadMapping } from '../../utils/gamepadMappings';
-
-
-
-describe('useGamepadState', () => {
-  const mockCbInteractChange = jest.fn();
-
+describe("useGamepadState", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
+  it("should have some tests", () => {
+    console.log("TODO: useGamepadState tests");
+  });
 });

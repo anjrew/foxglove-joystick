@@ -1,31 +1,33 @@
-import { useEffect, useLayoutEffect } from 'react';
 import { PanelExtensionContext } from "@foxglove/extension";
-import { useJoyPanelState } from './useJoyPanelState';
-import { useJoyPanelCallbacks } from './joyPanelCallbacks';
-import { useJoyPanelEffects } from './useJoyPanelEffects';
-import { JoyPanelView } from './JoyPanelView';
-import { useGamepad } from '../../hooks/useGamepad';
-import ReactDOM from 'react-dom';
+import { useEffect, useLayoutEffect } from "react";
+import ReactDOM from "react-dom";
+
+import { JoyPanelView } from "./JoyPanelView";
+import { useJoyPanelCallbacks } from "./joyPanelCallbacks";
+import { useJoyPanelEffects } from "./useJoyPanelEffects";
+import { useJoyPanelState } from "./useJoyPanelState";
+import { useGamepad } from "../../hooks/useGamepad";
 
 export function JoyPanel({ context }: { readonly context: PanelExtensionContext }): JSX.Element {
   const {
-    config, setConfig,
-    joy, setJoy,
-    setTopics,
-    messages, setMessages,
-    pubTopic, setPubTopic,
-    kbEnabled, setKbEnabled,
-    trackedKeys, setTrackedKeys,
-    renderDone, setRenderDone,
-  } = useJoyPanelState(context);
-
-  const callbacks = useJoyPanelCallbacks(
     config,
     setConfig,
+    joy,
     setJoy,
+    setTopics,
+    messages,
+    setMessages,
+    pubTopic,
+    setPubTopic,
+    kbEnabled,
+    setKbEnabled,
+    trackedKeys,
     setTrackedKeys,
-    setKbEnabled
-  );
+    renderDone,
+    setRenderDone,
+  } = useJoyPanelState(context);
+
+  const callbacks = useJoyPanelCallbacks(config, setConfig, setJoy, setTrackedKeys, setKbEnabled);
 
   // Setup render handling
   useLayoutEffect(() => {
@@ -37,7 +39,7 @@ export function JoyPanel({ context }: { readonly context: PanelExtensionContext 
 
     context.watch("topics");
     context.watch("currentFrame");
-  }, [context]);
+  }, [context, setMessages, setRenderDone, setTopics]);
 
   // Use gamepad hook
   useGamepad({
