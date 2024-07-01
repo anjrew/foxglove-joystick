@@ -30,8 +30,13 @@ describe("GamepadView", () => {
 
   it('displays "No mapping!" when displayMapping is empty', () => {
     jest.spyOn(gamepadMappings, "getGamepadMapping").mockReturnValue([]);
+    const testLayoutName = "unknown" as gamepadMappings.GamepadMappingKey;
     render(
-      <GamepadView joy={mockJoy} cbInteractChange={mockCbInteractChange} layoutName="unknown" />,
+      <GamepadView
+        joy={mockJoy}
+        cbInteractChange={mockCbInteractChange}
+        layoutName={testLayoutName}
+      />,
     );
     expect(screen.getByText("No mapping!")).toBeInTheDocument();
   });
