@@ -1,5 +1,5 @@
-import { DPadConfig } from '../../types';
-import { generateDPad } from '../../utils/svgUtils';
+import { DPadConfig } from "../../types";
+import { generateDPad } from "../../utils/svgUtils";
 
 interface GamepadDPadProps {
   config: DPadConfig;
