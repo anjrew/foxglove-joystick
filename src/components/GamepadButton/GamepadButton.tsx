@@ -1,5 +1,5 @@
-import { ButtonConfig, PointerEventType } from '../../types';
-import { generateButton } from '../../utils/svgUtils';
+import { ButtonConfig, PointerEventType } from "../../types";
+import { generateButton } from "../../utils/svgUtils";
 
 interface GamepadButtonProps {
   config: ButtonConfig;
@@ -17,7 +17,11 @@ export const GamepadButton: React.FC<GamepadButtonProps> = ({ config, value, onI
     y,
     text,
     radius,
-    (e) => onInteraction(button, e, PointerEventType.Down),
-    (e) => onInteraction(button, e, PointerEventType.Up)
+    (e) => {
+      onInteraction(button, e, PointerEventType.Down);
+    },
+    (e) => {
+      onInteraction(button, e, PointerEventType.Up);
+    },
   );
 };
