@@ -1,3 +1,5 @@
+import { GamepadMappingKey } from "../utils/gamepadMappings";
+
 export type PanelConfig = {
   dataSource: string;
   subJoyTopic: string;
@@ -7,7 +9,7 @@ export type PanelConfig = {
   publishFrameId: string;
   displayMode: string;
   debugGamepad: boolean;
-  layoutName: string;
+  layoutName: GamepadMappingKey;
   mapping_name: string;
   options: PanelOptions;
 };

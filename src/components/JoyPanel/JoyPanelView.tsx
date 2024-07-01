@@ -1,23 +1,24 @@
-import React from 'react';
 import { FormGroup, FormControlLabel, Switch } from "@mui/material";
+import React from "react";
+
+import { PanelConfig } from "../../config";
+import { Joy } from "../../types";
 import { GamepadView } from "../GamepadView/GamepadView";
 import { SimpleButtonView } from "../SimpleButtonView";
-import { Joy } from "../../types"; 
-import { PanelConfig } from '../../config';
 
 export function JoyPanelView({
   config,
   joy,
   kbEnabled,
   handleKbSwitch,
-  interactiveCb
+  interactiveCb,
 }: {
   readonly config: PanelConfig;
   readonly joy: Joy | undefined;
   readonly kbEnabled: boolean;
   readonly handleKbSwitch: (event: React.ChangeEvent<HTMLInputElement>) => void;
   readonly interactiveCb: (interactiveJoy: Joy) => void;
-}) {
+}): JSX.Element {
   return (
     <div>
       {config.dataSource === "keyboard" ? (
