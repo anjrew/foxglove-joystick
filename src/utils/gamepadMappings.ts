@@ -1,3 +1,5 @@
+import _ from "lodash";
+
 import cheapo from "../mappings/cheapo.json";
 import ipega9083s from "../mappings/ipega-9083s.json";
 import steamdeck from "../mappings/steamdeck.json";
@@ -24,8 +26,9 @@ const gamepadMappings = {
     label: "Xbox Axis Reverse",
     getMapping: () => xbox,
     getJoyTransform: (joy: Joy) => {
-      joy.axes = joy.axes.map((axis) => -axis);
-      return joy;
+      const newJoy = _.cloneDeep(joy);
+      newJoy.axes = newJoy.axes.map((axis) => -axis);
+      return newJoy;
     },
   },
   cheapo: {
@@ -39,6 +42,10 @@ export type GamepadMappingKey = keyof typeof gamepadMappings;
 
 export function getGamepadMapping(layoutName: GamepadMappingKey): DisplayMapping {
   return gamepadMappings[layoutName].getMapping();
+}
+
+export function transformJoy(layoutName: GamepadMappingKey, joy: Joy): Joy {
+  return gamepadMappings[layoutName].getJoyTransform(joy);
 }
 
 export function getGamepadOptions(): { label: string; value: GamepadMappingKey }[] {

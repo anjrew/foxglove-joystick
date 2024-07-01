@@ -11,7 +11,7 @@ import {
   Joy,
   StickConfig,
 } from "../../types";
-import { GamepadMappingKey, getGamepadMapping } from "../../utils/gamepadMappings";
+import { GamepadMappingKey, getGamepadMapping, transformJoy } from "../../utils/gamepadMappings";
 import { GamepadBar } from "../GamepadBar";
 import { GamepadButton } from "../GamepadButton";
 import { GamepadDPad } from "../GamepadDPad";
@@ -35,6 +35,11 @@ export function GamepadView(
   );
   usePanPrevention();
 
+  if (!joy) {
+    return <h2>No joy data!</h2>;
+  }
+  const joyTransformed = transformJoy(layoutName, joy);
+
   return (
     <div>
       {displayMapping.length === 0 ? <h2>No mapping!</h2> : null}
@@ -49,7 +54,7 @@ export function GamepadView(
                 <GamepadButton
                   key={key}
                   config={buttonConfig}
-                  value={joy?.buttons[buttonConfig.button] ?? 0}
+                  value={joyTransformed.buttons[buttonConfig.button] ?? 0}
                   onInteraction={handleButtonInteraction}
                 />
               );
@@ -60,9 +65,9 @@ export function GamepadView(
                 <GamepadStick
                   key={key}
                   config={stickConfig}
-                  xValue={joy?.axes[stickConfig.axisX] ?? 0}
-                  yValue={joy?.axes[stickConfig.axisY] ?? 0}
-                  buttonValue={joy?.buttons[stickConfig.button] ?? 0}
+                  xValue={joyTransformed.axes[stickConfig.axisX] ?? 0}
+                  yValue={joyTransformed.axes[stickConfig.axisY] ?? 0}
+                  buttonValue={joyTransformed.buttons[stickConfig.button] ?? 0}
                   onInteraction={handleAxisInteraction}
                 />
               );
@@ -73,8 +78,8 @@ export function GamepadView(
                 <GamepadDPad
                   key={key}
                   config={dpadConfig}
-                  xValue={joy?.axes[dpadConfig.axisX] ?? 0}
-                  yValue={joy?.axes[dpadConfig.axisY] ?? 0}
+                  xValue={joyTransformed.axes[dpadConfig.axisX] ?? 0}
+                  yValue={joyTransformed.axes[dpadConfig.axisY] ?? 0}
                 />
               );
             }
@@ -82,7 +87,11 @@ export function GamepadView(
               if ("axis" in item) {
                 const barConfig = item as AxisBarConfig;
                 return (
-                  <GamepadBar key={key} config={barConfig} value={joy?.axes[barConfig.axis] ?? 0} />
+                  <GamepadBar
+                    key={key}
+                    config={barConfig}
+                    value={joyTransformed.axes[barConfig.axis] ?? 0}
+                  />
                 );
               }
               if ("button" in item) {
@@ -91,7 +100,7 @@ export function GamepadView(
                   <GamepadBar
                     key={key}
                     config={barConfig}
-                    value={joy?.buttons[barConfig.button] ?? 0}
+                    value={joyTransformed.buttons[barConfig.button] ?? 0}
                   />
                 );
               }

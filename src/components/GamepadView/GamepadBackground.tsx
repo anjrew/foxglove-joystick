@@ -15,6 +15,8 @@ export function GamepadBackground(props: Readonly<{ layoutName: string }>): Reac
       return <IpegaBackground />;
     case "xbox":
       return <XboxBackground />;
+    case "xbox2":
+      return <XboxBackground />;
     case "cheapo":
       return <CheapoBackground />;
     default:
