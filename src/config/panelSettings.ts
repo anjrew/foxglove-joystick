@@ -8,8 +8,12 @@ import { produce } from "immer";
 import * as _ from "lodash";
 
 import { PanelConfig, PanelOptions } from "./types";
+import { getGamepadOptions } from "../utils/gamepadMappings";
 
-export function settingsActionReducer(prevConfig: PanelConfig, action: SettingsTreeAction): PanelConfig {
+export function settingsActionReducer(
+  prevConfig: PanelConfig,
+  action: SettingsTreeAction,
+): PanelConfig {
   return produce(prevConfig, (draft) => {
     if (action.action === "update") {
       const { path, value } = action.payload;
@@ -18,7 +22,10 @@ export function settingsActionReducer(prevConfig: PanelConfig, action: SettingsT
   });
 }
 
-export function buildSettingsTree(config: PanelConfig, topics?: readonly Topic[]): SettingsTreeNodes {
+export function buildSettingsTree(
+  config: PanelConfig,
+  topics?: readonly Topic[],
+): SettingsTreeNodes {
   const options: PanelOptions = config.options;
 
   const dataSourceFields: SettingsTreeFields = {
@@ -123,24 +130,7 @@ export function buildSettingsTree(config: PanelConfig, topics?: readonly Topic[]
       input: "select",
       disabled: config.displayMode === "auto",
       value: config.layoutName,
-      options: [
-        {
-          label: "Steam Deck",
-          value: "steamdeck",
-        },
-        {
-          label: "iPega PG-9083s",
-          value: "ipega-9083s",
-        },
-        {
-          label: "Xbox",
-          value: "xbox",
-        },
-        {
-          label: "Cheap Controller",
-          value: "cheapo",
-        },
-      ],
+      options: getGamepadOptions(),
     },
     debugGamepad: {
       label: "Debug Gamepad",
