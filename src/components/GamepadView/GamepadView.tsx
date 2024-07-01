@@ -3,7 +3,14 @@ import React from "react";
 import { GamepadBackground } from "./GamepadBackground";
 import { useGamepadInteractions } from "../../hooks/useGamepadInteractions";
 import { usePanPrevention } from "../../hooks/usePanPrevention";
-import { BarConfig, ButtonConfig, DPadConfig, Joy, StickConfig } from "../../types";
+import {
+  AnalogButtonBarConfig,
+  AxisBarConfig,
+  ButtonConfig,
+  DPadConfig,
+  Joy,
+  StickConfig,
+} from "../../types";
 import { GamepadMappingKey, getGamepadMapping } from "../../utils/gamepadMappings";
 import { GamepadBar } from "../GamepadBar";
 import { GamepadButton } from "../GamepadButton";
@@ -69,12 +76,27 @@ export function GamepadView(
               );
             }
             case "bar": {
-              const barConfig = item as BarConfig;
-              return (
-                <GamepadBar key={key} config={barConfig} value={joy?.axes[barConfig.axis] ?? 0} />
-              );
+              if ("axis" in item) {
+                const barConfig = item as AxisBarConfig;
+                return (
+                  <GamepadBar key={key} config={barConfig} value={joy?.axes[barConfig.axis] ?? 0} />
+                );
+              }
+              if ("button" in item) {
+                const barConfig = item as AnalogButtonBarConfig;
+                return (
+                  <GamepadBar
+                    key={key}
+                    config={barConfig}
+                    value={joy?.buttons[barConfig.button] ?? 0}
+                  />
+                );
+              }
+              console.error("Invalid bar config:", item);
+              return null;
             }
             default:
+              console.error("Unknown mapping item type:", item);
               return null;
           }
         })}
