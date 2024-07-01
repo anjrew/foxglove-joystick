@@ -1,25 +1,28 @@
 import React from "react";
-import { BarConfig, ButtonConfig, DPadConfig, Joy, StickConfig } from "../../types";
+
+import { GamepadBackground } from "./GamepadBackground";
 import { useGamepadInteractions } from "../../hooks/useGamepadInteractions";
 import { usePanPrevention } from "../../hooks/usePanPrevention";
+import { BarConfig, ButtonConfig, DPadConfig, Joy, StickConfig } from "../../types";
 import { getGamepadMapping } from "../../utils/gamepadMappings";
-import { GamepadBackground } from "./GamepadBackground";
-import { GamepadButton } from "../GamepadButton";
-import { GamepadStick } from "../GamepadStick";
-import { GamepadDPad } from "../GamepadDPad";
 import { GamepadBar } from "../GamepadBar";
+import { GamepadButton } from "../GamepadButton";
+import { GamepadDPad } from "../GamepadDPad";
+import { GamepadStick } from "../GamepadStick";
 
-export function GamepadView(props: Readonly<{
-  joy: Joy | undefined;
-  cbInteractChange: (joy: Joy) => void;
-  layoutName: string;
-}>): React.ReactElement {
+export function GamepadView(
+  props: Readonly<{
+    joy: Joy | undefined;
+    cbInteractChange: (joy: Joy) => void;
+    layoutName: string;
+  }>,
+): React.ReactElement {
   const { joy, cbInteractChange, layoutName } = props;
-
   const displayMapping = getGamepadMapping(layoutName);
-  const { handleButtonInteraction, handleAxisInteraction } = 
-    useGamepadInteractions(displayMapping, cbInteractChange);
-
+  const { handleButtonInteraction, handleAxisInteraction } = useGamepadInteractions(
+    displayMapping,
+    cbInteractChange,
+  );
   usePanPrevention();
 
   return (
@@ -28,24 +31,24 @@ export function GamepadView(props: Readonly<{
       <svg viewBox="0 0 512 512" className="preventPan">
         <GamepadBackground layoutName={layoutName} />
         {displayMapping.map((item, index) => {
+          const key = `${item.type}-${index}`; // Generate a unique key using the item type and index
           switch (item.type) {
             case "button": {
               const buttonConfig = item as ButtonConfig;
               return (
                 <GamepadButton
-                  key={index}
+                  key={key}
                   config={buttonConfig}
                   value={joy?.buttons[buttonConfig.button] ?? 0}
                   onInteraction={handleButtonInteraction}
                 />
               );
             }
-            case "stick":
+            case "stick": {
               const stickConfig = item as StickConfig;
-
               return (
                 <GamepadStick
-                  key={index}
+                  key={key}
                   config={stickConfig}
                   xValue={joy?.axes[stickConfig.axisX] ?? 0}
                   yValue={joy?.axes[stickConfig.axisY] ?? 0}
@@ -53,27 +56,24 @@ export function GamepadView(props: Readonly<{
                   onInteraction={handleAxisInteraction}
                 />
               );
-            case "d-pad":
+            }
+            case "d-pad": {
               const dpadConfig = item as DPadConfig;
-
               return (
                 <GamepadDPad
-                  key={index}
+                  key={key}
                   config={dpadConfig}
                   xValue={joy?.axes[dpadConfig.axisX] ?? 0}
                   yValue={joy?.axes[dpadConfig.axisY] ?? 0}
                 />
               );
-            case "bar":
+            }
+            case "bar": {
               const barConfig = item as BarConfig;
-
               return (
-                <GamepadBar
-                  key={index}
-                  config={barConfig}
-                  value={joy?.axes[barConfig.axis] ?? 0}
-                />
+                <GamepadBar key={key} config={barConfig} value={joy?.axes[barConfig.axis] ?? 0} />
               );
+            }
             default:
               return null;
           }
