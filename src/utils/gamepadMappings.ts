@@ -17,6 +17,10 @@ const gamepadMappings = {
     label: "Xbox",
     getMapping: () => xbox,
   },
+  xbox2: {
+    label: "Xbox Alternative",
+    getMapping: () => xbox,
+  },
   cheapo: {
     label: "Cheap Controller",
     getMapping: () => cheapo,

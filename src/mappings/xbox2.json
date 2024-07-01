@@ -48,7 +48,7 @@
         "button": 5
     },
     {
-        "type": "analog-button",
+        "type": "button",
         "text": "L2",
         "x": 135,
         "y": 70,
@@ -56,7 +56,7 @@
         "button": 6
     },
     {
-        "type": "analog-button",
+        "type": "button",
         "text": "R2",
         "x": 377,
         "y": 70,
