@@ -1,21 +1,22 @@
-import { useEffect } from 'react';
+import { PanelExtensionContext, SettingsTreeAction } from "@foxglove/extension";
+import { useEffect } from "react";
+
+import { useJoyPanelCallbacks } from "./joyPanelCallbacks";
+import { useJoyPanelState } from "./useJoyPanelState";
 import { buildSettingsTree, settingsActionReducer } from "../../config/panelSettings";
 import { Joy, KbMap } from "../../types";
-import { PanelExtensionContext, SettingsTreeAction } from "@foxglove/extension";
-import { useJoyPanelState } from './useJoyPanelState';
-import { useJoyPanelCallbacks } from './joyPanelCallbacks';
 
 export type JoyPanelEffectsProps = {
   context: PanelExtensionContext;
-  config: ReturnType<typeof useJoyPanelState>['config'];
-  setConfig: ReturnType<typeof useJoyPanelState>['setConfig'];
+  config: ReturnType<typeof useJoyPanelState>["config"];
+  setConfig: ReturnType<typeof useJoyPanelState>["setConfig"];
   joy: Joy | undefined;
   setJoy: (joy: Joy | undefined) => void;
   pubTopic: string | undefined;
   setPubTopic: (topic: string | undefined) => void;
   kbEnabled: boolean;
   trackedKeys: Map<string, KbMap> | undefined;
-  messages: ReturnType<typeof useJoyPanelState>['messages'];
+  messages: ReturnType<typeof useJoyPanelState>["messages"];
   callbacks: ReturnType<typeof useJoyPanelCallbacks>;
 };
 
@@ -31,7 +32,7 @@ export function useJoyPanelEffects({
   trackedKeys,
   messages,
   callbacks,
-}: JoyPanelEffectsProps) {
+}: JoyPanelEffectsProps): void {
   // Register the settings tree
   useEffect(() => {
     context.updatePanelSettingsEditor({
@@ -69,17 +70,17 @@ export function useJoyPanelEffects({
   }, [messages, config.publishFrameId, setJoy]);
 
   // Keyboard event listeners
-    useEffect(() => {
-      if (config.dataSource === "keyboard" && kbEnabled) {
-        document.addEventListener("keydown", callbacks.handleKeyDown);
-        document.addEventListener("keyup", callbacks.handleKeyUp);
-        return () => {
-          document.removeEventListener("keydown", callbacks.handleKeyDown);
-          document.removeEventListener("keyup", callbacks.handleKeyUp);
-        };
-      }
-      return () => {};
-    }, [config.dataSource, kbEnabled, callbacks.handleKeyDown, callbacks.handleKeyUp]);
+  useEffect(() => {
+    if (config.dataSource === "keyboard" && kbEnabled) {
+      document.addEventListener("keydown", callbacks.handleKeyDown);
+      document.addEventListener("keyup", callbacks.handleKeyUp);
+      return () => {
+        document.removeEventListener("keydown", callbacks.handleKeyDown);
+        document.removeEventListener("keyup", callbacks.handleKeyUp);
+      };
+    }
+    return undefined;
+  }, [config.dataSource, kbEnabled, callbacks.handleKeyDown, callbacks.handleKeyUp]);
 
   // Generate Joy from Keys
   useEffect(() => {
@@ -115,7 +116,7 @@ export function useJoyPanelEffects({
   }, [config.dataSource, config.publishFrameId, kbEnabled, trackedKeys, setJoy]);
 
   // Advertise the topic to publish
-  useEffect((  ) => {
+  useEffect(() => {
     if (config.publishMode) {
       setPubTopic(config.pubJoyTopic);
       context.advertise?.(config.pubJoyTopic, "sensor_msgs/Joy");

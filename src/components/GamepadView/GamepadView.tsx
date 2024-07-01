@@ -25,7 +25,10 @@ export function GamepadView(
   }>,
 ): React.ReactElement {
   const { joy, cbInteractChange, layoutName } = props;
+
+  // Get layout mapping
   const displayMapping = getGamepadMapping(layoutName);
+
   const { handleButtonInteraction, handleAxisInteraction } = useGamepadInteractions(
     displayMapping,
     cbInteractChange,
