@@ -9,6 +9,7 @@ import {
   Joy,
   StickConfig,
   AxisInteractionHandler,
+  BarConfig,
 } from "../../../types";
 
 const itemRenderers: {
@@ -22,7 +23,7 @@ const itemRenderers: {
   button: (cfg, j, handleButton) => renderButton(cfg as ButtonConfig, j, handleButton),
   stick: (cfg, j, _, handleAxis) => renderStick(cfg as StickConfig, j, handleAxis),
   "d-pad": (cfg, j) => renderDPad(cfg, j),
-  bar: (cfg, j) => renderBar(cfg as StickConfig, j),
+  bar: (cfg, j) => renderBar(cfg as BarConfig, j),
 };
 
 export function renderGamepadItem(
