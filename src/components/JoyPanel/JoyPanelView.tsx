@@ -19,6 +19,10 @@ export function JoyPanelView({
   readonly handleKbSwitch: (event: React.ChangeEvent<HTMLInputElement>) => void;
   readonly interactiveCb: (interactiveJoy: Joy) => void;
 }): JSX.Element {
+  if (joy == undefined && config.displayMode === "custom") {
+    return <div>No Joystick detected</div>;
+  }
+
   return (
     <div>
       {config.dataSource === "keyboard" ? (
@@ -31,7 +35,11 @@ export function JoyPanelView({
       ) : null}
       {config.displayMode === "auto" ? <SimpleButtonView joy={joy} /> : null}
       {config.displayMode === "custom" ? (
-        <GamepadView joy={joy} cbInteractChange={interactiveCb} layoutName={config.layoutName} />
+        <GamepadView
+          joy={joy as unknown as Joy}
+          cbInteractChange={interactiveCb}
+          layoutName={config.layoutName}
+        />
       ) : null}
     </div>
   );
