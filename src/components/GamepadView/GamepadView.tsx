@@ -1,6 +1,5 @@
 import React from "react";
 
-import { GamepadBackground } from "./GamepadBackground";
 import { useGamepadInteractions } from "../../hooks/useGamepadInteractions";
 import { usePanPrevention } from "../../hooks/usePanPrevention";
 import {
@@ -12,6 +11,7 @@ import {
   StickConfig,
 } from "../../types";
 import { GamepadMappingKey, getGamepadMapping, transformJoy } from "../../utils/gamepadMappings";
+import { GamepadBackground } from "../GamepadBackground/GamepadBackground";
 import { GamepadBar } from "../GamepadBar";
 import { GamepadButton } from "../GamepadButton";
 import { GamepadDPad } from "../GamepadDPad";
