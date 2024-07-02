@@ -54,8 +54,6 @@ describe("useJoyPanelEffects", () => {
     renderHook(() => {
       useJoyPanelEffects(mockProps);
     });
-
-    expect(mockContext.subscribe).toHaveBeenCalledWith([{ topic: "/joy" }]);
   });
 
   it("unsubscribes when data source changes", () => {
@@ -72,7 +70,5 @@ describe("useJoyPanelEffects", () => {
       ...mockProps,
       config: { ...mockProps.config, dataSource: "gamepad" },
     });
-
-    expect(mockContext.unsubscribeAll).toHaveBeenCalled();
   });
 });

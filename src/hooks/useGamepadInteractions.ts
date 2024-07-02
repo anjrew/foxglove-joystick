@@ -1,36 +1,20 @@
 import { useState, useEffect, useCallback } from "react";
 
-import {
-  Joy,
-  DisplayMapping,
-  Interaction,
-  PointerEventType,
-  ButtonConfig,
-  StickConfig,
-} from "../types";
+import * as types from "../types";
 
 export function useGamepadInteractions(
-  displayMapping: DisplayMapping,
-  cbInteractChange: (joy: Joy) => void,
+  displayMapping: types.DisplayMapping,
+  cbInteractChange: (joy: types.Joy) => void,
 ): {
   numButtons: number;
   numAxes: number;
-  interactions: Interaction[];
-  handleButtonInteraction: (
-    idx: number,
-    e: React.PointerEvent,
-    eventType: PointerEventType,
-  ) => void;
-  handleAxisInteraction: (
-    idxX: number,
-    idxY: number,
-    e: React.PointerEvent,
-    eventType: PointerEventType,
-  ) => void;
+  interactions: types.Interaction[];
+  handleButtonInteraction: types.ButtonInteractionHandler;
+  handleAxisInteraction: types.AxisInteractionHandler;
 } {
   const [numButtons, setNumButtons] = useState<number>(0);
   const [numAxes, setNumAxes] = useState<number>(0);
-  const [interactions, setInteractions] = useState<Interaction[]>([]);
+  const [interactions, setInteractions] = useState<types.Interaction[]>([]);
 
   useEffect(() => {
     if (displayMapping.length === 0) {
@@ -39,7 +23,7 @@ export function useGamepadInteractions(
     } else {
       const buttonConfigs = displayMapping.filter(
         (item) => item.type === "button",
-      ) as ButtonConfig[];
+      ) as types.ButtonConfig[];
       const numberOfButtons = buttonConfigs.length;
 
       setNumButtons(numberOfButtons);
@@ -47,7 +31,7 @@ export function useGamepadInteractions(
       setNumAxes(
         displayMapping.reduce((tempMax, current) => {
           if (current.type === "stick") {
-            const stick = current as StickConfig;
+            const stick = current as types.StickConfig;
             return Math.max(tempMax, stick.axisX, stick.axisY);
           } else {
             return tempMax;
@@ -68,7 +52,7 @@ export function useGamepadInteractions(
       },
       buttons: Array<number>(numButtons).fill(0),
       axes: Array<number>(numAxes).fill(0),
-    } as Joy;
+    } as types.Joy;
 
     interactions.forEach((inter) => {
       if (inter.buttonIdx >= 0 && inter.buttonIdx < numButtons) {
@@ -88,9 +72,9 @@ export function useGamepadInteractions(
   }, [numButtons, numAxes, interactions, cbInteractChange]);
 
   const handleButtonInteraction = useCallback(
-    (idx: number, e: React.PointerEvent, eventType: PointerEventType) => {
+    (idx: number, e: React.PointerEvent, eventType: types.PointerEventType) => {
       switch (eventType) {
-        case PointerEventType.Down: {
+        case types.PointerEventType.Down: {
           e.currentTarget.setPointerCapture(e.pointerId);
           setInteractions((prev) => [
             ...prev,
@@ -106,7 +90,7 @@ export function useGamepadInteractions(
           ]);
           break;
         }
-        case PointerEventType.Up: {
+        case types.PointerEventType.Up: {
           setInteractions((prev) => prev.filter((i) => i.pointerId !== e.pointerId));
           break;
         }
@@ -118,7 +102,7 @@ export function useGamepadInteractions(
   );
 
   const handleAxisInteraction = useCallback(
-    (idxX: number, idxY: number, e: React.PointerEvent, eventType: PointerEventType) => {
+    (idxX: number, idxY: number, e: React.PointerEvent, eventType: types.PointerEventType) => {
       const dim = e.currentTarget.getBoundingClientRect();
       const x = -(e.clientX - (dim.left + dim.right) / 2) / 30;
       const y = -(e.clientY - (dim.top + dim.bottom) / 2) / 30;
@@ -128,7 +112,7 @@ export function useGamepadInteractions(
       const ya = r * Math.sin(ang);
 
       switch (eventType) {
-        case PointerEventType.Down: {
+        case types.PointerEventType.Down: {
           e.currentTarget.setPointerCapture(e.pointerId);
           setInteractions((prev) => [
             ...prev,
@@ -144,7 +128,7 @@ export function useGamepadInteractions(
           ]);
           break;
         }
-        case PointerEventType.Move: {
+        case types.PointerEventType.Move: {
           setInteractions((prev) =>
             prev.map((v) =>
               v.pointerId === e.pointerId
@@ -162,7 +146,7 @@ export function useGamepadInteractions(
           );
           break;
         }
-        case PointerEventType.Up: {
+        case types.PointerEventType.Up: {
           setInteractions((prev) => prev.filter((i) => i.pointerId !== e.pointerId));
           break;
         }
