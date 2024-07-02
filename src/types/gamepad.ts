@@ -1,11 +1,11 @@
 export interface GamepadComponentConfig {
-  type: string;
+  type: string; // The type of the component
+  x: number; // The x position of the component
+  y: number; // The y position of the component
 }
 
 export interface ButtonConfig extends GamepadComponentConfig {
   text: string;
-  x: number;
-  y: number;
   rot: number;
   button: number;
 }
@@ -17,32 +17,31 @@ export interface AnalogButtonConfig extends GamepadComponentConfig {
 }
 
 export interface AxisBarConfig extends GamepadComponentConfig {
-  x: number;
-  y: number;
   rot: number;
   axis: number;
 }
 
 export interface AnalogButtonBarConfig extends GamepadComponentConfig {
-  x: number;
-  y: number;
   rot: number;
   button: number;
 }
 
 export interface StickConfig extends GamepadComponentConfig {
-  x: number;
-  y: number;
   axisX: number;
   axisY: number;
   button: number;
 }
 
-export interface DPadConfig extends GamepadComponentConfig {
-  x: number;
-  y: number;
+export interface DPadAxisConfig extends GamepadComponentConfig {
   axisX: number;
   axisY: number;
+}
+
+export interface DPadButtonConfig extends GamepadComponentConfig {
+  up: number;
+  right: number;
+  down: number;
+  left: number;
 }
 
 export interface Interaction {
@@ -64,3 +63,37 @@ export enum PointerEventType {
 export type DisplayMapping = Array<GamepadComponentConfig>;
 
 export type BarConfig = AnalogButtonBarConfig | AxisBarConfig;
+
+export function isDPadAxisConfig(obj: unknown): obj is DPadAxisConfig {
+  return (
+    typeof obj === "object" &&
+    obj != null &&
+    "x" in obj &&
+    "y" in obj &&
+    "axisX" in obj &&
+    "axisY" in obj &&
+    typeof obj.x === "number" &&
+    typeof obj.y === "number" &&
+    typeof obj.axisX === "number" &&
+    typeof obj.axisY === "number"
+  );
+}
+
+export function isDPadButtonConfig(obj: unknown): obj is DPadButtonConfig {
+  return (
+    typeof obj === "object" &&
+    obj != null &&
+    "up" in obj &&
+    "right" in obj &&
+    "down" in obj &&
+    "left" in obj &&
+    typeof obj.up === "number" &&
+    typeof obj.right === "number" &&
+    typeof obj.down === "number" &&
+    typeof obj.left === "number"
+  );
+}
+
+export function isDPadConfig(obj: unknown): obj is DPadAxisConfig | DPadButtonConfig {
+  return isDPadAxisConfig(obj) || isDPadButtonConfig(obj as DPadButtonConfig);
+}

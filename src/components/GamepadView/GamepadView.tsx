@@ -6,9 +6,10 @@ import {
   AnalogButtonBarConfig,
   AxisBarConfig,
   ButtonConfig,
-  DPadConfig,
   Joy,
   StickConfig,
+  isDPadAxisConfig,
+  isDPadButtonConfig,
 } from "../../types";
 import { GamepadMappingKey, getGamepadMapping, transformJoy } from "../../utils/gamepadMappings";
 import { GamepadBackground } from "../GamepadBackground/GamepadBackground";
@@ -47,7 +48,7 @@ export function GamepadView(
         <GamepadBackground layoutName={layoutName} />
         {displayMapping.map((item, index) => {
           const key = `${item.type}-${index}`; // Generate a unique key using the item type and index
-          switch (item.type) {
+          switch ((item as { type: string }).type) {
             case "button": {
               const buttonConfig = item as ButtonConfig;
               return (
@@ -73,14 +74,47 @@ export function GamepadView(
               );
             }
             case "d-pad": {
-              const dpadConfig = item as DPadConfig;
-              return (
-                <GamepadDPad
-                  key={key}
-                  config={dpadConfig}
-                  xValue={joyTransformed.axes[dpadConfig.axisX] ?? 0}
-                  yValue={joyTransformed.axes[dpadConfig.axisY] ?? 0}
-                />
+              if (isDPadAxisConfig(item)) {
+                const dpadAxisConfig = item;
+                return (
+                  <GamepadDPad
+                    key={key}
+                    config={dpadAxisConfig}
+                    xValue={joyTransformed.axes[dpadAxisConfig.axisX] ?? 0}
+                    yValue={joyTransformed.axes[dpadAxisConfig.axisY] ?? 0}
+                  />
+                );
+              }
+              if (isDPadButtonConfig(item)) {
+                const dpadButtonConfig = item;
+                let xValue = 0;
+                let yValue = 0;
+
+                if (joyTransformed.buttons[dpadButtonConfig.right] === 1) {
+                  xValue = 1;
+                } else if (joyTransformed.buttons[dpadButtonConfig.left] === 1) {
+                  xValue = -1;
+                }
+
+                if (joyTransformed.buttons[dpadButtonConfig.down] === 1) {
+                  yValue = 1;
+                } else if (joyTransformed.buttons[dpadButtonConfig.up] === 1) {
+                  yValue = -1;
+                }
+                return (
+                  <GamepadDPad
+                    key={key}
+                    config={dpadButtonConfig}
+                    xValue={xValue}
+                    yValue={yValue}
+                  />
+                );
+              }
+              throw new Error(
+                "Invalid d-pad config:" +
+                  Object.keys(item)
+                    .map((k) => `{k}: ${item[k]}`)
+                    .toString(),
               );
             }
             case "bar": {

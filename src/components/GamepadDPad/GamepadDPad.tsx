@@ -1,8 +1,8 @@
-import { DPadConfig } from "../../types";
+import { GamepadComponentConfig } from "../../types";
 import { generateDPad } from "../../utils/svgUtils";
 
 interface GamepadDPadProps {
-  config: DPadConfig;
+  config: GamepadComponentConfig;
   xValue: number;
   yValue: number;
 }
