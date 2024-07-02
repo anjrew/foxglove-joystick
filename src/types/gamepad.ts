@@ -2,24 +2,28 @@ export interface GamepadComponentConfig {
   type: string; // The type of the component
   x: number; // The x position of the component
   y: number; // The y position of the component
-  text: string; // The text to display on the component
-  rot: number; // The rotation of the component
 }
 
 export interface ButtonConfig extends GamepadComponentConfig {
   button: number;
+  text: string; // The text to display on the component
+  rot: number; // The rotation of the component
 }
 
 export interface AnalogButtonConfig extends GamepadComponentConfig {
   button: number;
+  text: string; // The text to display on the component
+  rot: number; // The rotation of the component
 }
 
 export interface AxisBarConfig extends GamepadComponentConfig {
   axis: number;
+  rot: number; // The rotation of the component
 }
 
 export interface AnalogButtonBarConfig extends GamepadComponentConfig {
   button: number;
+  rot: number; // The rotation of the component
 }
 
 export interface StickConfig extends GamepadComponentConfig {
