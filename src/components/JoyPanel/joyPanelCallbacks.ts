@@ -11,7 +11,15 @@ export function useJoyPanelCallbacks(
   setJoy: React.Dispatch<React.SetStateAction<Joy | undefined>>,
   setTrackedKeys: React.Dispatch<React.SetStateAction<Map<string, KbMap> | undefined>>,
   setKbEnabled: React.Dispatch<React.SetStateAction<boolean>>,
-) {
+): {
+  handleKeyDown: (event: KeyboardEvent) => void;
+  handleKeyUp: (event: KeyboardEvent) => void;
+  interactiveCb: (interactiveJoy: Joy) => void;
+  handleKbSwitch: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  handleGamepadConnect: (gp: Gamepad) => void;
+  handleGamepadDisconnect: (gp: Gamepad) => void;
+  handleGamepadUpdate: (gp: Gamepad) => void;
+} {
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       setTrackedKeys((oldTrackedKeys) => {
@@ -83,7 +91,7 @@ export function useJoyPanelCallbacks(
         subJoyTopic: prevConfig.subJoyTopic,
         gamepadId: prevConfig.gamepadId,
         publishMode: prevConfig.publishMode,
-        // Add other missing properties here
+        publishFrameId: prevConfig.publishFrameId,
       }));
       console.log(`Gamepad ${gp.index} connected!`);
     },
