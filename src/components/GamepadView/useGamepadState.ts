@@ -1,11 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
-import cheapo from "../../mappings/cheapo.json";
-import ipega9083s from "../../mappings/ipega-9083s.json";
-import steamdeck from "../../mappings/steamdeck.json";
-import xbox from "../../mappings/xbox.json";
 import { Joy, ButtonConfig, StickConfig, DisplayMapping } from "../../types";
-import { GamepadMappingKey, getGamepadMapping } from "../../utils/gamepadMappings";
+import { GamepadLayoutMappingKey, getGamepadMapping } from "../../mappings/gamepadLayoutMappings";
 
 interface Interaction {
   pointerId: number;
@@ -24,7 +20,7 @@ export enum PointerEventType {
 }
 
 export const useGamepadState = (
-  layoutName: GamepadMappingKey,
+  layoutName: GamepadLayoutMappingKey,
   cbInteractChange: (joy: Joy) => void,
 ): {
   numButtons: number;
@@ -32,12 +28,7 @@ export const useGamepadState = (
   interactions: Interaction[];
   displayMapping: DisplayMapping;
   buttonCb: (idx: number, e: React.PointerEvent, eventType: PointerEventType) => void;
-  axisCb: (
-    idxX: number,
-    idxY: number,
-    e: React.PointerEvent,
-    eventType: PointerEventType,
-  ) => void;
+  axisCb: (idxX: number, idxY: number, e: React.PointerEvent, eventType: PointerEventType) => void;
 } => {
   const [numButtons, setNumButtons] = useState<number>(0);
   const [numAxes, setNumAxes] = useState<number>(0);
@@ -51,16 +42,16 @@ export const useGamepadState = (
       setNumAxes(0);
     } else {
       setNumButtons(
-        Math.max(
-          ...displayMapping.map((item) =>
-            item.type === "button" ? (item as ButtonConfig).button : -1,
+        (Math.max(
+          ...displayMapping.map((item: ButtonConfig) =>
+            item.type === "button" ? item.button : -1,
           ),
-        ) + 1,
+        )  + 1,
       );
       setNumAxes(
-        displayMapping.reduce((tempMax, current) => {
+        displayMapping.reduce((tempMax: number, current: StickConfig) => {
           if (current.type === "stick") {
-            const mapping = current as StickConfig;
+            const mapping = current;
             return Math.max(tempMax, mapping.axisX, mapping.axisY);
           } else {
             return tempMax;
