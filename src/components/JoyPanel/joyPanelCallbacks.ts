@@ -2,8 +2,8 @@ import { fromDate } from "@foxglove/rostime";
 import React, { useCallback } from "react";
 
 import { PanelConfig } from "../../config";
-import { Joy, KbMap } from "../../types";
 import { transformGamepadToJoy } from "../../mappings/gamepadJoyTransforms";
+import { Joy, KbMap } from "../../types";
 
 export function useJoyPanelCallbacks(
   config: PanelConfig,
@@ -15,10 +15,10 @@ export function useJoyPanelCallbacks(
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       setTrackedKeys((oldTrackedKeys) => {
-        if (oldTrackedKeys?.has(event.key)) {
+        if (oldTrackedKeys?.has(event.key) === false) {
           const newKeys = new Map(oldTrackedKeys);
           const k = newKeys.get(event.key);
-          if (k !== undefined) {
+          if (k != undefined) {
             k.value = 1;
           }
           return newKeys;
@@ -114,9 +114,15 @@ export function useJoyPanelCallbacks(
       if (config.dataSource !== "gamepad" || config.gamepadId !== gp.index) {
         return;
       }
-      setJoy(transformGamepadToJoy(config.gamepadJoyTransform, config.publishFrameId, config.layoutName, gp));
+      setJoy(transformGamepadToJoy(config.gamepadJoyTransform, config.publishFrameId, gp));
     },
-    [config.dataSource, config.gamepadId, config.layoutName, config.publishFrameId, setJoy],
+    [
+      config.dataSource,
+      config.gamepadId,
+      config.publishFrameId,
+      config.gamepadJoyTransform,
+      setJoy,
+    ],
   );
 
   return {
