@@ -80,7 +80,10 @@ export function buildSettingsTree(
       input: "select",
       value: "default",
       disabled: config.dataSource !== "gamepad",
-      options: getGamepadJoyTransformOptions().map((label) => ({ label, value: label })),
+      options: Object.entries(getGamepadJoyTransformOptions()).map(([key, { label }]) => ({
+        label,
+        value: key,
+      })),
     },
   };
   const publishFields: SettingsTreeFields = {

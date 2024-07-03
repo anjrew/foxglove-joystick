@@ -84,6 +84,6 @@ export function transformGamepadToJoy(
   return gamepadJoyMappings[transformName]!.transformFunction(publishFrameId, gp);
 }
 
-export function getGamepadJoyTransformOptions(): Array<GamepadJoyTransformKey> {
-  return Object.keys(gamepadJoyMappings) as Array<GamepadJoyTransformKey>;
+export function getGamepadJoyTransformOptions(): GamepadJoyTransforms {
+  return gamepadJoyMappings;
 }
