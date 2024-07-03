@@ -1,10 +1,10 @@
 /* eslint-disable import/order */
 import React from "react";
 import { GamepadBackground } from "../GamepadBackground/GamepadBackground";
-import { GamepadMappingKey } from "../../utils/gamepadMappings";
+import { GamepadLayoutMappingKey } from "../../mappings/gamepadLayoutMappings";
 
 export const GamepadSVG: React.FC<{
-  layoutName: GamepadMappingKey;
+  layoutName: GamepadLayoutMappingKey;
   children: React.ReactNode;
 }> = ({ layoutName, children }) => {
   return (

@@ -3,7 +3,7 @@ import React, { useCallback } from "react";
 
 import { PanelConfig } from "../../config";
 import { Joy, KbMap } from "../../types";
-import { getGameToJoyTransform } from "../../utils/gamepadMappings";
+import { transformGamepadToJoy } from "../../mappings/gamepadJoyTransforms";
 
 export function useJoyPanelCallbacks(
   config: PanelConfig,
@@ -114,7 +114,7 @@ export function useJoyPanelCallbacks(
       if (config.dataSource !== "gamepad" || config.gamepadId !== gp.index) {
         return;
       }
-      setJoy(getGameToJoyTransform(config.publishFrameId, config.layoutName, gp));
+      setJoy(transformGamepadToJoy(config.gamepadJoyTransform, config.publishFrameId, config.layoutName, gp));
     },
     [config.dataSource, config.gamepadId, config.layoutName, config.publishFrameId, setJoy],
   );

@@ -20,7 +20,7 @@ const mockContext: PanelExtensionContext = {
     displayMode: "auto",
     debugGamepad: false,
     layoutName: "steamdeck",
-    mapping_name: "TODO",
+    mapping_name: "Default",
     gamepadId: 0,
     panelElement: "MockPanelElement",
     layout: "MockLayout",

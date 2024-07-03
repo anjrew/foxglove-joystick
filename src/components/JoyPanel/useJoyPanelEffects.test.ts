@@ -26,7 +26,7 @@ describe("useJoyPanelEffects", () => {
       displayMode: "auto",
       debugGamepad: false,
       layoutName: "steamdeck",
-      mapping_name: "TODO",
+      gamepadJoyTransform: "Xbox",
       options: { availableControllers: [] },
     },
     setConfig: jest.fn(),

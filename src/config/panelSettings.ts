@@ -8,7 +8,8 @@ import { produce } from "immer";
 import * as _ from "lodash";
 
 import { PanelConfig, PanelOptions } from "./types";
-import { getGamepadOptions } from "../utils/gamepadMappings";
+import { getGamepadOptions } from "../mappings/gamepadLayoutMappings";
+import { getGamepadJoyTransformOptions } from "../mappings/gamepadJoyTransforms";
 
 export function settingsActionReducer(
   prevConfig: PanelConfig,
@@ -74,21 +75,12 @@ export function buildSettingsTree(
         value: gp.index.toString(),
       })),
     },
-    gamepadMapping: {
+    gamepadJoyTransform: {
       label: "GP->Joy Mapping",
       input: "select",
       value: "default",
       disabled: config.dataSource !== "gamepad",
-      options: [
-        {
-          label: "Default",
-          value: "default",
-        },
-        {
-          label: "TODO Make selectable",
-          value: "todo",
-        },
-      ],
+      options: getGamepadJoyTransformOptions().map((label) => ({ label, value: label })),
     },
   };
   const publishFields: SettingsTreeFields = {

@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 
+import {
+  GamepadLayoutMappingKey,
+  getGamepadLayoutMapping,
+} from "../../mappings/gamepadLayoutMappings";
 import { Joy, ButtonConfig, StickConfig, DisplayMapping } from "../../types";
-import { GamepadLayoutMappingKey, getGamepadMapping } from "../../mappings/gamepadLayoutMappings";
 
 interface Interaction {
   pointerId: number;
@@ -34,30 +37,30 @@ export const useGamepadState = (
   const [numAxes, setNumAxes] = useState<number>(0);
   const [interactions, setInteractions] = useState<Interaction[]>([]);
 
-  const displayMapping = getGamepadMapping(layoutName);
+  const displayMapping = getGamepadLayoutMapping(layoutName);
 
   useEffect(() => {
     if (displayMapping.length === 0) {
       setNumButtons(0);
       setNumAxes(0);
     } else {
-      setNumButtons(
-        (Math.max(
-          ...displayMapping.map((item: ButtonConfig) =>
-            item.type === "button" ? item.button : -1,
-          ),
-        )  + 1,
+      // Calculate number of buttons
+      const mappedButtons = displayMapping
+        .filter((item): item is ButtonConfig => item.type === "button")
+        .map((item) => item.button);
+      const amountOfButtons = mappedButtons.length > 0 ? Math.max(...mappedButtons) + 1 : 0;
+      setNumButtons(amountOfButtons);
+
+      // Calculate number of axes
+      const stickConfigs = displayMapping.filter(
+        (item): item is StickConfig => item.type === "stick",
       );
-      setNumAxes(
-        displayMapping.reduce((tempMax: number, current: StickConfig) => {
-          if (current.type === "stick") {
-            const mapping = current;
-            return Math.max(tempMax, mapping.axisX, mapping.axisY);
-          } else {
-            return tempMax;
-          }
-        }, -1) + 1,
+      const maxAxisIndex = stickConfigs.reduce(
+        (max, stick) => Math.max(max, stick.axisX, stick.axisY),
+        -1,
       );
+      const numberOfAxes = maxAxisIndex + 1;
+      setNumAxes(numberOfAxes);
     }
   }, [displayMapping]);
 

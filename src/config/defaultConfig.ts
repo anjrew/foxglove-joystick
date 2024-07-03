@@ -16,12 +16,12 @@ export const createDefaultConfig = (context?: PanelExtensionContext): PanelConfi
     displayMode: partialConfig.displayMode ?? "auto",
     debugGamepad: partialConfig.debugGamepad ?? false,
     layoutName: partialConfig.layoutName ?? "steamdeck",
-    mapping_name: partialConfig.mapping_name ?? "TODO",
+    gamepadJoyTransform: partialConfig.gamepadJoyTransform ?? "Default",
     gamepadId: partialConfig.gamepadId ?? 0,
     options: {
       availableControllers: [],
     },
-  };
+  } as PanelConfig;
 };
 
 export const createKeyboardMapping = (): Map<string, KbMap> => {

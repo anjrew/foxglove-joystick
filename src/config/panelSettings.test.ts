@@ -13,7 +13,7 @@ describe("settingsActionReducer", () => {
       displayMode: "auto",
       debugGamepad: false,
       layoutName: "steamdeck",
-      mapping_name: "TODO",
+      gamepadJoyTransform: "Xbox",
       options: { availableControllers: [] },
     };
 
@@ -38,7 +38,7 @@ describe("buildSettingsTree", () => {
       displayMode: "auto",
       debugGamepad: false,
       layoutName: "steamdeck",
-      mapping_name: "TODO",
+      gamepadJoyTransform: "Default",
       options: { availableControllers: [] },
     };
 
