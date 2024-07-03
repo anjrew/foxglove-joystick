@@ -132,3 +132,5 @@ dist
 
 # Extension artifact files
 *.foxe
+local-install
+run

@@ -8,8 +8,8 @@ import { produce } from "immer";
 import * as _ from "lodash";
 
 import { PanelConfig, PanelOptions } from "./types";
-import { getGamepadOptions } from "../mappings/gamepadLayoutMappings";
 import { getGamepadJoyTransformOptions } from "../mappings/gamepadJoyTransforms";
+import { getGamepadOptions } from "../mappings/gamepadLayoutMappings";
 
 export function settingsActionReducer(
   prevConfig: PanelConfig,

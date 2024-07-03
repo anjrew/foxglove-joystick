@@ -4,7 +4,7 @@ import { Header, Joy } from "../types";
 
 type GameToJoyTransformFunction = (publishFrameId: string, gp: Gamepad) => Joy;
 
-export type GamepadJoyTransformKey = "Default" | "Xbox" | "Xbox Reverse";
+export type GamepadJoyTransformKey = "default" | "xbox" | "xbox_reverse";
 
 const defaultGameToJoyTransform = (publishFrameId: string, gp: Gamepad): Joy => {
   return {
@@ -52,10 +52,28 @@ function xboxPadToJoyTransformReverse(publishFrameId: string, gp: Gamepad): Joy 
   return tmpJoy;
 }
 
-const gamepadJoyMappings: { [label: string]: GameToJoyTransformFunction } = {
-  Default: defaultGameToJoyTransform,
-  Xbox: xboxPadToJoyTransform,
-  "Xbox Reverse": xboxPadToJoyTransformReverse,
+interface GamepadMappingEntry {
+  label: string;
+  transformFunction: GameToJoyTransformFunction;
+}
+
+type GamepadJoyTransforms = {
+  [key: string]: GamepadMappingEntry;
+};
+
+const gamepadJoyMappings: GamepadJoyTransforms = {
+  default: {
+    label: "Default",
+    transformFunction: defaultGameToJoyTransform,
+  },
+  xbox: {
+    label: "Xbox",
+    transformFunction: xboxPadToJoyTransform,
+  },
+  xbox_reverse: {
+    label: "Xbox Reverse",
+    transformFunction: xboxPadToJoyTransformReverse,
+  },
 };
 
 export function transformGamepadToJoy(
@@ -63,7 +81,7 @@ export function transformGamepadToJoy(
   publishFrameId: string,
   gp: Gamepad,
 ): Joy {
-  return gamepadJoyMappings[transformName]!(publishFrameId, gp);
+  return gamepadJoyMappings[transformName]!.transformFunction(publishFrameId, gp);
 }
 
 export function getGamepadJoyTransformOptions(): Array<GamepadJoyTransformKey> {
