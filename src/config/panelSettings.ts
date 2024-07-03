@@ -78,7 +78,7 @@ export function buildSettingsTree(
     gamepadJoyTransform: {
       label: "GP->Joy Mapping",
       input: "select",
-      value: "default",
+      value: config.gamepadJoyTransform,
       disabled: config.dataSource !== "gamepad",
       options: Object.entries(getGamepadJoyTransformOptions()).map(([key, { label }]) => ({
         label,
