@@ -1,21 +1,20 @@
-import { Topic, SettingsTreeNodes, SettingsTreeFields, SettingsTreeAction } from "@foxglove/studio";
+import {
+  Topic,
+  SettingsTreeAction,
+  SettingsTreeFields,
+  SettingsTreeNodes,
+} from "@foxglove/extension";
 import { produce } from "immer";
-import * as _ from "lodash-es";
+import * as _ from "lodash";
 
-export type Config = {
-  dataSource: string;
-  subJoyTopic: string;
-  gamepadId: number;
-  publishMode: boolean;
-  pubJoyTopic: string;
-  publishFrameId: string;
-  displayMode: string;
-  debugGamepad: boolean;
-  layoutName: string;
-  mapping_name: string;
-};
+import { PanelConfig, PanelOptions } from "./types";
+import { getGamepadJoyTransformOptions } from "../mappings/gamepadJoyTransforms";
+import { getGamepadOptions } from "../mappings/gamepadLayoutMappings";
 
-export function settingsActionReducer(prevConfig: Config, action: SettingsTreeAction): Config {
+export function settingsActionReducer(
+  prevConfig: PanelConfig,
+  action: SettingsTreeAction,
+): PanelConfig {
   return produce(prevConfig, (draft) => {
     if (action.action === "update") {
       const { path, value } = action.payload;
@@ -24,7 +23,12 @@ export function settingsActionReducer(prevConfig: Config, action: SettingsTreeAc
   });
 }
 
-export function buildSettingsTree(config: Config, topics?: readonly Topic[]): SettingsTreeNodes {
+export function buildSettingsTree(
+  config: PanelConfig,
+  topics?: readonly Topic[],
+): SettingsTreeNodes {
+  const options: PanelOptions = config.options;
+
   const dataSourceFields: SettingsTreeFields = {
     dataSource: {
       label: "Data Source",
@@ -50,57 +54,36 @@ export function buildSettingsTree(config: Config, topics?: readonly Topic[]): Se
       ],
     },
     subJoyTopic: {
-      label: "Subsc. Joy Topic",
+      label: "Subscribe. Joy Topic",
       input: "select",
       value: config.subJoyTopic,
       disabled: config.dataSource !== "sub-joy-topic",
       options: (topics ?? [])
-        .filter((topic) => topic.datatype === "sensor_msgs/msg/Joy")
+        .filter((topic) => topic.schemaName === "sensor_msgs/msg/Joy")
         .map((topic) => ({
           label: topic.name,
           value: topic.name,
         })),
-      // error: (!config.topic ? "Topic name is empty" : null),
     },
     gamepadId: {
       label: "Gamepad ID",
       input: "select",
       value: config.gamepadId.toString(),
       disabled: config.dataSource !== "gamepad",
-      options: [
-        {
-          label: "0",
-          value: "0",
-        },
-        {
-          label: "1",
-          value: "1",
-        },
-        {
-          label: "2",
-          value: "2",
-        },
-        {
-          label: "TODO Make this auto populate",
-          value: "3",
-        },
-      ],
+      options: options.availableControllers.map((gp: Gamepad) => ({
+        label: gp.id,
+        value: gp.index.toString(),
+      })),
     },
-    gamepadMapping: {
+    gamepadJoyTransform: {
       label: "GP->Joy Mapping",
       input: "select",
-      value: "default",
+      value: config.gamepadJoyTransform,
       disabled: config.dataSource !== "gamepad",
-      options: [
-        {
-          label: "Default",
-          value: "default",
-        },
-        {
-          label: "TODO Make selectable",
-          value: "todo",
-        },
-      ],
+      options: Object.entries(getGamepadJoyTransformOptions()).map(([key, { label }]) => ({
+        label,
+        value: key,
+      })),
     },
   };
   const publishFields: SettingsTreeFields = {
@@ -108,7 +91,7 @@ export function buildSettingsTree(config: Config, topics?: readonly Topic[]): Se
       label: "Publish Mode",
       input: "boolean",
       value: config.publishMode,
-      disabled: config.dataSource === "sub-joy-topic", // TODO also need to force publish mode to false when in sub mode
+      disabled: config.dataSource === "sub-joy-topic",
     },
     pubJoyTopic: {
       label: "Pub Joy Topic",
@@ -142,38 +125,8 @@ export function buildSettingsTree(config: Config, topics?: readonly Topic[]): Se
       input: "select",
       disabled: config.displayMode === "auto",
       value: config.layoutName,
-      options: [
-        {
-          label: "Steam Deck",
-          value: "steamdeck",
-        },
-        {
-          label: "iPega PG-9083s",
-          value: "ipega-9083s",
-        },
-        {
-          label: "Xbox",
-          value: "xbox",
-        },
-        {
-          label: "Cheap Controller",
-          value: "cheapo",
-        },
-      ],
+      options: getGamepadOptions(),
     },
-
-    // mapping: {
-    //   label: "Mapping",
-    //   input: "select",
-    //   value: config.mapping_name,
-    //   disabled: true, // config.displayMode === "auto",
-    //   options: [
-    //     {
-    //       label: "Custom",
-    //       value: "custom",
-    //     },
-    //   ],
-    // },
     debugGamepad: {
       label: "Debug Gamepad",
       input: "boolean",

@@ -1,18 +1,24 @@
+/* eslint-disable react/jsx-key */
 import { Button, LinearProgress } from "@mui/material";
 
-// TODO copy theming from another extension
+import { Joy } from "../../types";
 
-export function SimpleButtonView(props: any) {
+function getButtonColor(value: number): string {
+  // Convert value to a hue between 120 (green) and 0 (red)
+  const hue = 120 - value * 120;
+  return `hsl(${hue}, 100%, 50%)`;
+}
 
-
+export function SimpleButtonView(props: { readonly joy: Joy | undefined }): JSX.Element {
   const buttons = props.joy
     ? props.joy.buttons.map((item: number, index: number) => (
         <Button
+          key={`button-${index}`} // Use a unique identifier for the key
           variant={item > 0 ? "contained" : "outlined"}
           size="large"
-          color={item > 0 ? "error" : "primary"}
+          style={{ backgroundColor: getButtonColor(item) }}
         >
-          {index}
+          {index} ({item})
         </Button>
       ))
     : [];
@@ -33,7 +39,6 @@ export function SimpleButtonView(props: any) {
       {props.joy ? null : "Waiting for first data..."}
       {buttons}
       {axes}
-      {/* {JSON.stringify(props.joy)} */}
     </div>
   );
 }

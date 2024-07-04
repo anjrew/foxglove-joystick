@@ -1,0 +1,16 @@
+{
+    "recommendations": [
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "ms-typescript-eslint.vscode-typescript-eslint",
+      "foxglove.studio-extension-helpers",
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "ms-vscode-remote.remote-containers",
+      "ms-azuretools.vscode-docker",
+      "streetsidesoftware.code-spell-checker",
+      "orta.vscode-jest",
+      "foxglove.vscode-foxglove-studio",
+      "sonarsource.sonarlint-vscode"
+    ]
+  }

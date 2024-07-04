@@ -11,7 +11,6 @@
 - Add keyboard mode
 - Add interactive mode
 
-
 ## 0.0.1
 
 - Initial release
