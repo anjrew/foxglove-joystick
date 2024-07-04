@@ -54,6 +54,7 @@ export function useJoyPanelCallbacks(
     [setTrackedKeys],
   );
 
+  // Only used in interactive mode
   const interactiveCb = useCallback(
     (interactiveJoy: Joy) => {
       if (config.dataSource !== "interactive") {

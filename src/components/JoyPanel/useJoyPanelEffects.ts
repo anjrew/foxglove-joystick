@@ -82,7 +82,7 @@ export function useJoyPanelEffects({
     return undefined;
   }, [config.dataSource, kbEnabled, callbacks.handleKeyDown, callbacks.handleKeyUp]);
 
-  // Generate Joy from Keys
+  // Generate Joy from Keyboard keystrokes Keys
   useEffect(() => {
     if (config.dataSource !== "keyboard" || !kbEnabled) {
       return;
@@ -101,7 +101,9 @@ export function useJoyPanelEffects({
         while (axes.length <= value.axis) {
           axes.push(0);
         }
-        axes[value.axis] += (value.direction > 0 ? 1 : -1) * value.value;
+        if (axes[value.axis] != undefined) {
+          axes[value.axis]! += (value.direction > 0 ? 1 : -1) * value.value; // NOSONAR
+        }
       }
     });
 

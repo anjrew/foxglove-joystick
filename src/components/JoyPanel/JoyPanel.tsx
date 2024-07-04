@@ -1,6 +1,6 @@
 import { PanelExtensionContext } from "@foxglove/extension";
 import { useEffect, useLayoutEffect } from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 
 import { JoyPanelView } from "./JoyPanelView";
 import { useJoyPanelCallbacks } from "./joyPanelCallbacks";
@@ -80,10 +80,11 @@ export function JoyPanel({ context }: { readonly context: PanelExtensionContext 
 }
 
 export function initJoyPanel(context: PanelExtensionContext): () => void {
-  ReactDOM.render(<JoyPanel context={context} />, context.panelElement);
+  const root = createRoot(context.panelElement);
+  root.render(<JoyPanel context={context} />);
 
   // Return a function to run when the panel is removed
   return () => {
-    ReactDOM.unmountComponentAtNode(context.panelElement);
+    root.unmount();
   };
 }
