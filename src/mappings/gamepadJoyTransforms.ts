@@ -25,6 +25,11 @@ function mapTrigger(
   return mappedVal;
 }
 
+function reverseAllAxis(joy: Joy): Joy {
+  joy.axes = joy.axes.map((axis) => -axis);
+  return joy;
+}
+
 const defaultGameToJoyTransform = (publishFrameId: string, gp: Gamepad): Joy => {
   return {
     header: {
@@ -37,20 +42,20 @@ const defaultGameToJoyTransform = (publishFrameId: string, gp: Gamepad): Joy => 
 };
 
 function xboxPadToJoyTransform(publishFrameId: string, gp: Gamepad): Joy {
+  const leftTriggerButtonIndex = 6;
+  const rightTriggerButtonIndex = 7;
+
   const tmpJoy = defaultGameToJoyTransform(publishFrameId, gp);
-  const triggerLeftAxis: number = mapTrigger(gp.buttons[6]?.value ?? 0, 0, 1, -1, 1);
-  const triggerRightAxis: number = mapTrigger(gp.buttons[7]?.value ?? 0, 0, 1, -1, 1);
-  tmpJoy.axes = [...tmpJoy.axes, triggerLeftAxis, triggerRightAxis];
 
   const xboxButtons = gp.buttons.map((button, index) => {
-    if (index === 6 || index === 7) {
-      return button.value;
+    if (index === leftTriggerButtonIndex || index === rightTriggerButtonIndex) {
+      return mapTrigger(button.value, 0, 1, -1, 1);
     } else {
       return button.pressed ? 1 : 0;
     }
   });
   tmpJoy.buttons = xboxButtons;
-  return tmpJoy;
+  return reverseAllAxis(tmpJoy);
 }
 
 interface GamepadMappingEntry {

@@ -43,22 +43,21 @@ Please follow [this guide](docs/steamdeck.md).
 
 ## Mapping
 
-Right now all "mapping" within the program is direct, but it is intended that there will be flexibility here. This is because different controllers (and in some cases the same controller on different platforms) will have the buttons/axes arranged in a different order.
+Different controllers (and in some cases the same controller on different platforms) will have the buttons/axes arranged in a different order.
 
 Some more complex examples of this are D-Pads (sometimes register as two axes, sometimes four buttons) and triggers (sometimes register as axes + buttons, sometimes buttons with a variable value, unsupported by `Joy`).
 
-Thus it is expected to eventually need the following:
+You can select the Gamepad to Joy transformation that works in the panel options. The Gamepad to Joy transformations are stored in the [mappings](src/mappings/gamepadJoyTransforms.ts) file.
 
-| Mapping | Purpose | Current implementation |
-| ------- | ------- | ---------------------- |
-| Gamepad (numerical) -> Joy (or Keyboard -> Joy) | Defines how key pressed are mapped to `Joy` values (e.g. gamepad button 3 maps to joy button 4). | Direct mapping |
-| Joy -> Gamepad/Layout (named) | Defines how `Joy` values map into the Layout (e.g. joy button 4 maps to layout button "L1"). | Built into layout JSON (separate in future) |
+To create a new mapping, you can use the [Gamepad Tester](https://gamepad-tester.com/) to see the order of the buttons and axes on your controller. Then add a the new mapping logic to the [mappings](src/mappings/gamepadJoyTransforms.ts) 
 
 Also note that the HTML gamepad API seems to have the axes reversed compared to what typically comes out of the `joy` drivers, so the panel flips those values back automatically.
 
 ## Layouts
 
-Currently consist of a `.json` to determine button locations and an entry in `GamepadBackground.tsx` for the background. Intention is for this to be more configurable in future.
+Currently consist of a `.json` to determine button locations and an entry in `GamepadBackground.tsx` for the background. 
+
+To add a new mapping, create a new .json mapping file in the [mappings](src/mappings) and be sure to update the `GamepadLayoutMappingKey` with the id `gamepadLayoutMappings` object with the new mapping so the panel options are also updated.
 
 ## Planned functionality/improvements
 
