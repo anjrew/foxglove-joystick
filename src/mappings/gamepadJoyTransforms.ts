@@ -45,7 +45,24 @@ function xboxPadToJoyTransform(publishFrameId: string, gp: Gamepad): Joy {
   const leftTriggerButtonIndex = 6;
   const rightTriggerButtonIndex = 7;
 
-  const tmpJoy = defaultGameToJoyTransform(publishFrameId, gp);
+  const tmpJoy = {
+    header: {
+      frame_id: publishFrameId,
+      stamp: fromDate(new Date()),
+    } as Header,
+    axes: gp.axes.map((axis) => -axis),
+    buttons: gp.buttons.map((button) => button.value),
+  } as Joy;
+
+  // We have to do this hacky thing because the triggers are buttons on the xbox controller
+  const leftTriggerButton = gp.buttons[leftTriggerButtonIndex];
+  if (leftTriggerButton != undefined) {
+    tmpJoy.axes.push(mapTrigger(leftTriggerButton.value, 0, 1, -1, 1));
+  }
+  const rightTriggerButton = gp.buttons[rightTriggerButtonIndex];
+  if (rightTriggerButton != undefined) {
+    tmpJoy.axes.push(mapTrigger(rightTriggerButton.value, 0, 1, -1, 1));
+  }
 
   const xboxButtons = gp.buttons.map((button, index) => {
     if (index === leftTriggerButtonIndex || index === rightTriggerButtonIndex) {
