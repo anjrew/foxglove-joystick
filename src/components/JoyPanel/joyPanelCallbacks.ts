@@ -123,7 +123,12 @@ export function useJoyPanelCallbacks(
       if (config.dataSource !== "gamepad" || config.gamepadId !== gp.index) {
         return;
       }
-      setJoy(transformGamepadToJoy(config.gamepadJoyTransform, config.publishFrameId, gp));
+      const transformedJoy = transformGamepadToJoy(
+        config.gamepadJoyTransform,
+        config.publishFrameId,
+        gp,
+      );
+      setJoy(transformedJoy);
     },
     [
       config.dataSource,
