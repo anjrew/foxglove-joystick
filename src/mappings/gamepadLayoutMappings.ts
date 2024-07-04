@@ -33,10 +33,6 @@ const gamepadLayoutMappings: GamepadMappings = {
     label: "Xbox",
     getMapping: () => xbox,
   },
-  xbox2: {
-    label: "Xbox Axis Reverse",
-    getMapping: () => xbox,
-  },
   cheapo: {
     label: "Cheap Controller",
     getMapping: () => cheapo,

@@ -28,13 +28,13 @@ const itemRenderers: {
 
 export function renderGamepadItem(
   item: GamepadComponentConfig,
-  joyTransformed: Joy,
+  joy: Joy,
   handleButtonInteraction: ButtonInteractionHandler,
   handleAxisInteraction: AxisInteractionHandler,
 ): JSX.Element | null {
   const renderer = itemRenderers[item.type];
   if (renderer) {
-    return renderer(item, joyTransformed, handleButtonInteraction, handleAxisInteraction);
+    return renderer(item, joy, handleButtonInteraction, handleAxisInteraction);
   }
   console.error("Unknown mapping item type:", item);
   return null;

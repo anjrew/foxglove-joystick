@@ -6,6 +6,24 @@ type GameToJoyTransformFunction = (publishFrameId: string, gp: Gamepad) => Joy;
 
 export type GamepadJoyTransformKey = "default" | "xbox" | "xbox_reverse";
 
+function mapTrigger(
+  value: number,
+  input_min: number,
+  input_max: number,
+  output_min: number,
+  output_max: number,
+): number {
+  // Ensure the input value is within the input range
+  const clampedValue = Math.max(input_min, Math.min(input_max, value));
+
+  // Calculate the input range and output range
+  const inputRange = input_max - input_min;
+  const outputRange = output_max - output_min;
+
+  // Map the value from input range to output range
+  return ((clampedValue - input_min) / inputRange) * outputRange + output_min;
+}
+
 const defaultGameToJoyTransform = (publishFrameId: string, gp: Gamepad): Joy => {
   return {
     header: {
@@ -19,8 +37,8 @@ const defaultGameToJoyTransform = (publishFrameId: string, gp: Gamepad): Joy => 
 
 function xboxPadToJoyTransform(publishFrameId: string, gp: Gamepad): Joy {
   const tmpJoy = defaultGameToJoyTransform(publishFrameId, gp);
-  const triggerLeftAxis: number = gp.buttons[6]?.value ?? 0;
-  const triggerRightAxis: number = gp.buttons[7]?.value ?? 0;
+  const triggerLeftAxis: number = mapTrigger(gp.buttons[6]?.value ?? 0, -1, 1, 0, 1);
+  const triggerRightAxis: number = mapTrigger(gp.buttons[7]?.value ?? 0, -1, 1, 0, 1);
   tmpJoy.axes = [...tmpJoy.axes, triggerLeftAxis, triggerRightAxis];
 
   const xboxButtons = gp.buttons.map((button, index) => {
@@ -30,24 +48,6 @@ function xboxPadToJoyTransform(publishFrameId: string, gp: Gamepad): Joy {
       return button.pressed ? 1 : 0;
     }
   });
-  tmpJoy.buttons = xboxButtons;
-  return tmpJoy;
-}
-
-function xboxPadToJoyTransformReverse(publishFrameId: string, gp: Gamepad): Joy {
-  const tmpJoy = defaultGameToJoyTransform(publishFrameId, gp);
-  const triggerLeftAxis: number = gp.buttons[6]?.value ?? 0;
-  const triggerRightAxis: number = gp.buttons[7]?.value ?? 0;
-  tmpJoy.axes = [...tmpJoy.axes, triggerLeftAxis, triggerRightAxis];
-
-  const xboxButtons = gp.buttons.map((button, index) => {
-    if (index === 6 || index === 7) {
-      return button.value;
-    } else {
-      return button.pressed ? 1 : 0;
-    }
-  });
-  tmpJoy.axes = tmpJoy.axes.map((axis) => -axis);
   tmpJoy.buttons = xboxButtons;
   return tmpJoy;
 }
@@ -69,10 +69,6 @@ const gamepadJoyMappings: GamepadJoyTransforms = {
   xbox: {
     label: "Xbox",
     transformFunction: xboxPadToJoyTransform,
-  },
-  xbox_reverse: {
-    label: "Xbox Reverse",
-    transformFunction: xboxPadToJoyTransformReverse,
   },
 };
 
