@@ -1,9 +1,15 @@
-import { useState, useCallback } from 'react';
-import { Immutable, MessageEvent, Topic, SettingsTreeAction, PanelExtensionContext } from "@foxglove/extension";
-import { Joy, KbMap } from "../../types";
+import {
+  Immutable,
+  MessageEvent,
+  Topic,
+  SettingsTreeAction,
+  PanelExtensionContext,
+} from "@foxglove/extension";
+import { useState, useCallback } from "react";
+
 import { PanelConfig, createDefaultConfig, createKeyboardMapping } from "../../config";
 import { settingsActionReducer } from "../../config/panelSettings";
-
+import { Joy, KbMap } from "../../types";
 
 export interface UseJoyPanelStateResult {
   topics: undefined | Immutable<Topic[]>;
@@ -25,8 +31,7 @@ export interface UseJoyPanelStateResult {
   settingsActionHandler: (action: SettingsTreeAction) => void;
 }
 
-
-export function useJoyPanelState(context?: PanelExtensionContext) {
+export function useJoyPanelState(context?: PanelExtensionContext): UseJoyPanelStateResult {
   const [topics, setTopics] = useState<undefined | Immutable<Topic[]>>();
   const [messages, setMessages] = useState<undefined | Immutable<MessageEvent[]>>();
   const [joy, setJoy] = useState<Joy | undefined>();
@@ -46,14 +51,22 @@ export function useJoyPanelState(context?: PanelExtensionContext) {
   );
 
   return {
-    topics, setTopics,
-    messages, setMessages,
-    joy, setJoy,
-    pubTopic, setPubTopic,
-    kbEnabled, setKbEnabled,
-    trackedKeys, setTrackedKeys,
-    renderDone, setRenderDone,
-    config, setConfig,
+    topics,
+    setTopics,
+    messages,
+    setMessages,
+    joy,
+    setJoy,
+    pubTopic,
+    setPubTopic,
+    kbEnabled,
+    setKbEnabled,
+    trackedKeys,
+    setTrackedKeys,
+    renderDone,
+    setRenderDone,
+    config,
+    setConfig,
     settingsActionHandler,
   };
 }
