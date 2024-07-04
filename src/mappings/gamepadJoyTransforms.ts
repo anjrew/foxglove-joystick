@@ -21,7 +21,8 @@ function mapTrigger(
   const outputRange = output_max - output_min;
 
   // Map the value from input range to output range
-  return ((clampedValue - input_min) / inputRange) * outputRange + output_min;
+  const mappedVal = ((clampedValue - input_min) / inputRange) * outputRange + output_min;
+  return mappedVal;
 }
 
 const defaultGameToJoyTransform = (publishFrameId: string, gp: Gamepad): Joy => {
@@ -37,8 +38,8 @@ const defaultGameToJoyTransform = (publishFrameId: string, gp: Gamepad): Joy => 
 
 function xboxPadToJoyTransform(publishFrameId: string, gp: Gamepad): Joy {
   const tmpJoy = defaultGameToJoyTransform(publishFrameId, gp);
-  const triggerLeftAxis: number = mapTrigger(gp.buttons[6]?.value ?? 0, -1, 1, 0, 1);
-  const triggerRightAxis: number = mapTrigger(gp.buttons[7]?.value ?? 0, -1, 1, 0, 1);
+  const triggerLeftAxis: number = mapTrigger(gp.buttons[6]?.value ?? 0, 0, 1, -1, 1);
+  const triggerRightAxis: number = mapTrigger(gp.buttons[7]?.value ?? 0, 0, 1, -1, 1);
   tmpJoy.axes = [...tmpJoy.axes, triggerLeftAxis, triggerRightAxis];
 
   const xboxButtons = gp.buttons.map((button, index) => {
