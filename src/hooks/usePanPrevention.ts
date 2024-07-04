@@ -1,6 +1,6 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from "react";
 
-export function usePanPrevention() {
+export function usePanPrevention(): void {
   const preventPan = useCallback((event: Event): void => {
     event.preventDefault();
   }, []);
