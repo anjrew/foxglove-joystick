@@ -40,8 +40,6 @@ Right now it seems that this panel will **not** work with the `snap` version of 
 
 Please follow [this guide](docs/steamdeck.md).
 
-
-
 ## Mapping
 
 Right now all "mapping" within the program is direct, but it is intended that there will be flexibility here. This is because different controllers (and in some cases the same controller on different platforms) will have the buttons/axes arranged in a different order. 
